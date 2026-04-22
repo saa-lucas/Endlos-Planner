@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+      <style>
+            * { box-sizing: border-box; }
+            :root {
+              --bg-main: #000000; --bg-card: #0a0a0a; --bg-btn: #111111; --bg-btn-hover: #1a1a1a;
+              --text-primary: #e0e0e0; --text-secondary: #888888;
+              --border: #262626; --border-hover: #444444; --toggle-on: #444444; 
+              --accent-blue: #0077B5;
+              --toast-success: #00ffaa; --toast-loading: #ffbb00; --toast-error: #ff3366; --toast-warning: #ffaa00;
+            }
+            body.light-mode {
+              --bg-main: #f8f9fa; --bg-card: #ffffff; --bg-btn: #ffffff; --bg-btn-hover: #f1f3f5;
+              --text-primary: #000000; --text-secondary: #6c757d;
+              --border: #dee2e6; --border-hover: #adb5bd; --toggle-on: #212529; 
+            }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-main) !important; color: var(--text-primary) !important; padding: 16px; margin: 0; overflow-x: hidden; overflow-y: scroll; transition: background 0.3s ease; }
+
+            .header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 20px; gap: 10px; }
+            .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
+            h3 { color: var(--text-primary) !important; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; margin: 0; line-height: 1.3; }
+
+            #config-panel { background-color: var(--bg-card) !important; border: 1px solid var(--border) !important; padding: 12px 14px; margin-bottom: 24px; border-radius: 4px; display: none; }
+            .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+            .toggle-label { font-size: 10px; color: var(--text-secondary) !important; font-family: 'Courier New', monospace; }
+            .sub-header { font-size: 9px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; margin-bottom: 6px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; }
+
+            .search-input, .sys-input { width: 100%; background: var(--bg-btn); color: var(--text-primary); border: 1px solid var(--border); padding: 8px 10px; font-family: 'Courier New', monospace; font-size: 11px; border-radius: 4px; outline: none; margin-bottom: 12px; }
+            .sys-input:focus { border-color: var(--text-secondary); }
+
+            button, .btn, .btn-action, .btn-large-print { background-color: var(--bg-btn) !important; color: var(--text-secondary) !important; border: 1px solid var(--border) !important; border-radius: 2px !important; cursor: pointer; font-family: 'Courier New', monospace; transition: all 0.15s ease-in-out; outline: none; display: flex; align-items: center; justify-content: center; }
+            button:hover, .btn:hover, .btn-action:hover, .btn-large-print:hover { background-color: var(--bg-btn-hover) !important; border-color: var(--border-hover) !important; color: var(--text-primary) !important; }
+            .header-actions .btn-action { padding: 0 !important; min-width: 38px !important; height: 38px !important; font-size: 11px; border-radius: 3px !important; }
+            .btn-large-print { width: 100%; padding: 12px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+
+            #list-container { display: flex; flex-direction: column; gap: 8px; }
+            .btn-container { display: flex; gap: 6px; width: 100%; align-items: stretch; }
+            .btn-container .btn { padding: 14px 16px; width: 100%; text-align: left; font-size: 11px; }
+            .btn-container .btn-action { height: auto !important; min-width: 42px !important; }
+
+            .switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+            .switch input { opacity: 0; width: 0; height: 0; }
+            .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border); transition: .3s; border-radius: 18px; }
+            .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: var(--text-secondary); transition: .3s; border-radius: 50%; }
+            input:checked + .slider { background-color: var(--toggle-on); }
+            input:checked + .slider:before { transform: translateX(16px); background-color: var(--bg-main); }
+
+            select { background: var(--bg-card) !important; color: var(--text-secondary) !important; border: 1px solid var(--border) !important; padding: 6px; font-size: 11px; font-family: 'Courier New', monospace; outline: none; width: 100%; margin-bottom: 8px; }
+
+            /* TREE VIEW */
+            .tree-node { background: var(--bg-main); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; overflow: hidden; }
+            .tree-header { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg-btn); border-bottom: 1px solid var(--border); }
+            .tree-title-group { display: flex; align-items: center; gap: 8px; }
+            .tree-color-dot { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--border); }
+            .tree-title { font-size: 11px; font-weight: bold; color: var(--text-primary); }
+            .tree-mode { font-size: 9px; color: var(--text-secondary); font-family: monospace; background: var(--bg-main); padding: 2px 6px; border-radius: 2px; }
+            .tree-actions-list { padding: 10px; padding-left: 20px; }
+            .tree-action-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border); }
+            .tree-action-item:last-child { border-bottom: none; }
+            .icon-btn { background: transparent !important; border: none !important; font-size: 11px; padding: 4px !important; min-width: auto !important; height: auto !important; color: var(--text-secondary) !important; }
+            .icon-btn:hover { color: var(--text-primary) !important; }
+
+            /* MODAL UI */
+            .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; }
+            .sys-modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; width: 90%; max-width: 300px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+            .modal-title { font-size: 12px; font-weight: bold; color: var(--text-primary); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+            .modal-label { font-size: 9px; color: var(--text-secondary); display: block; margin-bottom: 4px; text-transform: uppercase; }
+            
+            #ui-toast { position: fixed; bottom: 20px; right: -300px; background-color: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border); border-left: 3px solid var(--text-primary); padding: 10px 14px; font-size: 11px; font-family: 'Courier New', monospace; transition: right 0.3s ease; z-index: 9999; }
+            #ui-toast.show { right: 20px; }
+            .footer { font-size: 9px; color: var(--text-secondary); margin-top: 40px; text-align: center; border-top: 1px dashed var(--border); padding-top: 15px; }
+      </style>
+  </head>
+  <body>
+    <div class="header-container">
+      <h3>Endlos<br>Planner</h3>
+      <div class="header-actions">
+        <button id="config-btn" class="btn-action" title="Configurações e ADMIN">⚙️</button>
+        <button id="refresh-btn" class="btn-action" title="Atualizar Dashboard">🔄</button>
+        <button id="show-all-btn" class="btn-action" title="Mostrar todas as colunas">ALL</button>
+        <button id="add-week-btn" class="btn-action" title="Criar próxima semana">+</button>
+      </div>
+    </div>
+
+    <button id="print-btn" class="btn-large-print">🖨️ IMPRIMIR PDF</button>
+    <button id="smart-merge-btn" class="btn-large-print">✂️ MESCLAR BLOCOS</button>
+    <button id="reset-block-btn" class="btn-large-print" style="margin-bottom: 16px;">🧹 RESETAR BLOCO</button>
+    <button id="open-dash-btn" class="btn-large-print" style="margin-bottom: 16px;">📊 ABRIR DASHBOARD</button>
+
+    <div id="config-panel">
+      <div class="sub-header">Preferências Globais</div>
+      <div class="setting-row">
+        <span class="toggle-label">TEMA VISUAL</span>
+        <select id="theme-selector" style="cursor:pointer; width:auto; margin:0;">
+          <option value="DARK_CLASSIC">DARK (CLÁSSICO)</option>
+          <option value="LIGHT_CLASSIC">LIGHT (CLÁSSICO)</option>
+          <option value="DARK_MODERN">DARK (MODERNO)</option>
+          <option value="LIGHT_MODERN">LIGHT (MODERNO)</option>
+        </select>
+      </div>
+      
+      <div class="setting-row"><span class="toggle-label" id="header-toggle-label">CABEÇALHOS: OFF</span><label class="switch"><input type="checkbox" id="header-toggle"><span class="slider"></span></label></div>
+      <div class="setting-row"><span class="toggle-label" id="font-toggle-label">FONTE: PADRÃO</span><label class="switch"><input type="checkbox" id="font-toggle"><span class="slider"></span></label></div>
+      <div class="setting-row"><span class="toggle-label" id="meal-toggle-label">MESCLAR REFEIÇÃO: ON</span><label class="switch"><input type="checkbox" id="meal-toggle" checked><span class="slider"></span></label></div>
+      <div class="setting-row"><span class="toggle-label" id="unwind-toggle-label">UNWIND 1H: ON</span><label class="switch"><input type="checkbox" id="unwind-toggle" checked><span class="slider"></span></label></div>
+      <div class="setting-row"><span class="toggle-label" id="skip-update-toggle-label">PULAR UPDATE: ON</span><label class="switch"><input type="checkbox" id="skip-update-toggle" checked><span class="slider"></span></label></div>
+      <button id="full-sync-btn" class="btn-large-print" style="border-color:var(--toast-error)!important; color:var(--toast-error)!important;">⚠️ RECONSTRUIR DATEN</button>
+
+      <div id="system-config-builder" style="margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span style="font-size: 11px; color: var(--text-primary); font-weight: bold; letter-spacing: 1px;">⚙️ ADMIN: REGRAS DO SISTEMA</span>
+        </div>
+        
+        <input type="text" id="sys-search" class="search-input" placeholder="🔍 Buscar contexto ou ação..." onkeyup="handleSearch()">
+        
+        <div style="display:flex; gap:8px; margin-bottom: 16px;">
+          <div style="flex:1; display:flex; align-items:center; justify-content:space-between; background:var(--bg-btn); padding:6px 10px; border-radius:2px; border:1px solid var(--border);">
+            <span style="font-size:9px; color:var(--toast-loading); font-weight:bold;">MODO EDIÇÃO</span>
+            <label class="switch" style="transform: scale(0.8);"><input type="checkbox" id="adv-edit-toggle" onchange="renderTree()"><span class="slider"></span></label>
+          </div>
+          <button class="btn-large-print" onclick="openContextModal()" style="margin:0; padding:6px; font-size:9px; flex:1; border-color:var(--text-secondary) !important; color:var(--text-primary) !important;">➕ ADD CONTEXTO</button>
+        </div>
+
+        <div id="builder-tree-list"></div>
+      </div>
+    </div>
+
+    <div id="sys-modal-overlay" class="modal-overlay">
+      <div class="sys-modal" id="sys-modal">
+        <div class="modal-title" id="modal-title">EDITAR ITEM</div>
+        <input type="hidden" id="modal-target-id"><input type="hidden" id="modal-target-type"><input type="hidden" id="modal-parent-id">
+        <span class="modal-label">NOME DO ITEM</span><input type="text" id="modal-input-name" class="sys-input" placeholder="Ex: Matemática">
+        <div id="modal-color-group"><span class="modal-label">COR DA PALETA</span><select id="modal-select-color"></select></div>
+        <span class="modal-label">MODO (IMPACTO NO SISTEMA)</span><select id="modal-select-mode"></select>
+        <div style="display: flex; gap: 8px; margin-top: 20px;">
+          <button class="btn-large-print" style="margin:0; flex:1; border-color:var(--text-secondary)!important; color:var(--text-primary)!important;" onclick="saveModal()">SALVAR</button>
+          <button class="btn-large-print" style="margin:0; flex:1; border-color:transparent!important;" onclick="closeModal()">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="forced-modal-overlay" class="modal-overlay" style="background: rgba(0,0,0,0.95);">
+      <div class="sys-modal">
+        <div class="modal-title" style="color: var(--toast-warning);">⚠️ AÇÃO NÃO MAPEADA</div>
+        <p style="font-size: 11px; color: var(--text-primary); margin-bottom: 16px; line-height: 1.4;">
+          A ação <strong id="forced-act-name" style="color:var(--toast-loading);"></strong> (Contexto: <span id="forced-ctx-name"></span>) não possui um Mode associado no banco de dados.
+        </p>
+        <span class="modal-label">Defina o impacto desta ação:</span>
+        <select id="forced-select-mode" class="sys-input" style="margin-bottom: 20px;"></select>
+        <button id="forced-btn-save" class="btn-large-print" style="border-color: var(--toast-success) !important; color: var(--toast-success) !important; font-weight: bold;">SALVAR & CONTINUAR</button>
+      </div>
+    </div>
+
+    <div id="list-container" style="margin-top: 10px;">Carregando semanas...</div>
+    <div class="footer" id="sync-status">Sincronizado</div>
+    <div id="ui-toast"></div>
+
+    <script>
+      window.currentFocus = "ALL"; 
+
+      // ===============================================
+      // TOAST SYSTEM 
+      // ===============================================
+      function showSidebarToast(message, type = 'success') {
+        var toast = document.getElementById('ui-toast');
+        let icon = '✅'; let color = 'var(--toast-success)';
+        if (type === 'loading') { icon = '⏳'; color = 'var(--toast-loading)'; }
+        else if (type === 'error') { icon = '❌'; color = 'var(--toast-error)'; }
+        toast.innerHTML = `${icon} ${message}`; toast.style.borderLeftColor = color; toast.classList.add('show');
+        if (type !== 'loading') { setTimeout(() => toast.classList.remove('show'), 4000); }
+      }
+
+      // ===============================================
+      // SYSTEM BUILDER (ESTADO ÚNICO & POLLING)
+      // ===============================================
+      const MODES_OPTIONS = ["Entrada", "Saída", "Suporte", "Desperdício", "Recuperação"];
+      const PALETTE_COLORS = [
+        { name: "Dark red", hex: "#2d0a0a" }, { name: "Cranberry", hex: "#310d14" }, { name: "Dark orange", hex: "#331500" },
+        { name: "Bronze", hex: "#3a2208" }, { name: "Peach", hex: "#3d2600" }, { name: "Marigold", hex: "#3d3100" },
+        { name: "Gold", hex: "#2d260c" }, { name: "Dark Brown", hex: "#2a1505" }, { name: "Lime", hex: "#212e0c" },
+        { name: "Forest", hex: "#152b15" }, { name: "Light green", hex: "#1c3314" }, { name: "Dark green", hex: "#0c260c" },
+        { name: "Light teal", hex: "#0c2d2d" }, { name: "Dark teal", hex: "#0c2626" }, { name: "Steel", hex: "#122633" },
+        { name: "Sky blue", hex: "#0c2d3d" }, { name: "Dark blue", hex: "#0d1a33" }, { name: "Lavender", hex: "#211a33" },
+        { name: "Dark purple", hex: "#261833" }, { name: "Pink", hex: "#331422" }, { name: "Plum", hex: "#2b112c" },
+        { name: "Beige", hex: "#332d22" }, { name: "Mink", hex: "#2d2625" }, { name: "Silver", hex: "#1f2425" },
+        { name: "Charcoal", hex: "#151515" }, { name: "Pattern", hex: "#fff2cc" }
+      ];
+
+      function getColorHex(name) { const col = PALETTE_COLORS.find(c => c.name === name); return col ? col.hex : "#333333"; }
+      
+      let sysConfigState = { contexts: [], actions: [] };
+      let searchQuery = "";
+      let sysVersion = "0";
+      
+      // FILA DE EXECUÇÃO FORÇADA
+      let pendingActionsQueue = [];
+      let isQueueProcessing = false;
+
+      function generateId() { return Math.random().toString(36).substr(2, 9); }
+
+      // 🔄 POLLING (Verifica banco a cada 5s)
+      function startStatePolling() {
+        setInterval(() => {
+          if (document.getElementById('sys-modal-overlay').style.display === 'flex' && !isQueueProcessing) return;
+          google.script.run.withSuccessHandler(res => {
+            if (res.needsUpdate) {
+              sysVersion = res.newVersion;
+              document.getElementById('sync-status').innerText = "Atualizando estado...";
+              loadSystemConfigFromDatabase(true); 
+            }
+          }).checkSystemVersion(sysVersion);
+        }, 5000);
+      }
+
+      function loadSystemConfigFromDatabase(isBackgroundUpdate = false) {
+        if (!isBackgroundUpdate) showSidebarToast("Lendo banco...", "loading");
+        
+        google.script.run.withSuccessHandler(function(jsonString) {
+             sysConfigState = JSON.parse(jsonString);
+             renderTree(); 
+             if (!isBackgroundUpdate) showSidebarToast("Sincronizado", "success");
+             document.getElementById('sync-status').innerText = "Sistema Sincronizado";
+             
+             checkForOrphanActions(); 
+          }).withFailureHandler(err => { if(!isBackgroundUpdate) showSidebarToast("Erro: " + err.message, "error"); })
+          .getSystemConfigFromPalette();
+      }
+
+      function handleSearch() { searchQuery = document.getElementById('sys-search').value.toLowerCase(); renderTree(); }
+
+      function persistAndReload(successMsg) {
+        showSidebarToast("Gravando no servidor...", "loading");
+        google.script.run.withSuccessHandler(() => {
+           showSidebarToast(successMsg, "success");
+           loadSystemConfigFromDatabase(); 
+        }).withFailureHandler(err => showSidebarToast("Falha: " + err.message, "error"))
+        .saveSystemConfigToPalette(JSON.stringify(sysConfigState));
+      }
+
+      // =====================================================================
+      // SISTEMA DE FILA: AÇÕES ÓRFÃS (SEM MODE)
+      // =====================================================================
+      function checkForOrphanActions() {
+        const orphans = sysConfigState.actions.filter(a => !a.modeOverride || a.modeOverride.trim() === "");
+        
+        if (orphans.length > 0) {
+          orphans.forEach(o => {
+            if (!pendingActionsQueue.find(p => p.id === o.id)) pendingActionsQueue.push(o);
+          });
+          if (!isQueueProcessing) processNextOrphanAction();
+        }
+      }
+
+      function processNextOrphanAction() {
+        if (pendingActionsQueue.length === 0) {
+          isQueueProcessing = false; return;
+        }
+
+        isQueueProcessing = true;
+        const actionToProcess = pendingActionsQueue[0];
+        const parentCtx = sysConfigState.contexts.find(c => c.id === actionToProcess.contextId);
+        
+        document.getElementById('forced-act-name').innerText = actionToProcess.name;
+        document.getElementById('forced-ctx-name').innerText = parentCtx ? parentCtx.name : "Desconhecido";
+        
+        let selectEl = document.getElementById('forced-select-mode');
+        selectEl.innerHTML = `<option value="" disabled selected>Escolha um Mode...</option>`;
+        MODES_OPTIONS.forEach(m => { selectEl.innerHTML += `<option value="${m}">${m}</option>`; });
+
+        let btnSave = document.getElementById('forced-btn-save');
+        btnSave.onclick = () => {
+          let selectedMode = selectEl.value;
+          if (!selectedMode) { showSidebarToast("Selecione um modo obrigatório", "error"); return; }
+          
+          btnSave.innerText = "⏳ GRAVANDO..."; btnSave.disabled = true;
+          
+          google.script.run.withSuccessHandler(() => {
+             pendingActionsQueue.shift(); 
+             btnSave.innerText = "SALVAR & CONTINUAR"; btnSave.disabled = false;
+             document.getElementById('forced-modal-overlay').style.display = 'none';
+             processNextOrphanAction(); 
+             if (pendingActionsQueue.length === 0) loadSystemConfigFromDatabase();
+          }).withFailureHandler(err => {
+             showSidebarToast(err.message, "error");
+             btnSave.innerText = "TENTAR NOVAMENTE"; btnSave.disabled = false;
+          }).saveSingleActionMode(actionToProcess.name, selectedMode);
+        };
+
+        document.getElementById('forced-modal-overlay').style.display = 'flex';
+      }
+
+      // =====================================================================
+      // TREE RENDERER 
+      // =====================================================================
+      function renderTree() {
+        const container = document.getElementById('builder-tree-list'); container.innerHTML = '';
+        const isAdvanced = document.getElementById('adv-edit-toggle').checked;
+        
+        let filteredCtx = sysConfigState.contexts.filter(c => c.name.toLowerCase().includes(searchQuery) || sysConfigState.actions.some(a => a.contextId === c.id && a.name.toLowerCase().includes(searchQuery)));
+
+        if (filteredCtx.length === 0) {
+            container.innerHTML = '<div style="font-size:10px; color:var(--text-secondary); text-align:center;">Nenhum item válido encontrado.</div>';
+            return;
+        }
+
+        filteredCtx.forEach(ctx => {
+          const node = document.createElement('div'); node.className = 'tree-node';
+          let headerHtml = `
+            <div class="tree-header">
+              <div class="tree-title-group">
+                <div class="tree-color-dot" style="background:${getColorHex(ctx.colorName)}"></div>
+                <span class="tree-title">${ctx.name}</span>
+                <span class="tree-mode">${ctx.mode || '⚠️ VAZIO'}</span>
+              </div>
+              ${isAdvanced ? `<div style="display:flex; gap:4px;"><button class="icon-btn" onclick="openContextModal('${ctx.id}')">✏️</button><button class="icon-btn del" style="color:var(--toast-error)!important;" onclick="deleteContext('${ctx.id}')">🗑️</button></div>` : ''}
+            </div>
+          `;
+          
+          let acts = sysConfigState.actions.filter(a => a.contextId === ctx.id && a.name.toLowerCase().includes(searchQuery));
+          let actsHtml = `<div class="tree-actions-list">`;
+          acts.forEach(a => {
+            let modeDisplay = a.modeOverride ? a.modeOverride : `⚠️ ERRO (Sem Mode)`;
+            actsHtml += `
+              <div class="tree-action-item">
+                <div class="tree-title-group">
+                  <span class="act-title">${a.name}</span><span class="tree-mode" style="${!a.modeOverride ? 'color:var(--toast-error); font-weight:bold;' : ''}">${modeDisplay}</span>
+                </div>
+                ${isAdvanced ? `<div style="display:flex; gap:4px;"><button class="icon-btn" onclick="openActionModal('${ctx.id}', '${a.id}')">✏️</button><button class="icon-btn del" style="color:var(--toast-error)!important;" onclick="deleteAction('${a.id}')">🗑️</button></div>` : ''}
+              </div>
+            `;
+          });
+          if (isAdvanced) actsHtml += `<button class="icon-btn" style="margin-top:6px; font-weight:bold; font-size:10px;" onclick="openActionModal('${ctx.id}', null)">+ Adicionar Ação</button>`;
+          actsHtml += `</div>`;
+
+          node.innerHTML = headerHtml + actsHtml; container.appendChild(node);
+        });
+      }
+
+      // =====================================================================
+      // MODAL CONTROLLERS
+      // =====================================================================
+      function populateModeSelect(selectEl, currentVal) {
+        selectEl.innerHTML = '';
+        MODES_OPTIONS.forEach(m => {
+          let opt = document.createElement('option'); opt.value = m; opt.text = m;
+          if (m === currentVal) opt.selected = true; selectEl.appendChild(opt);
+        });
+      }
+
+      function populateColorSelect(selectEl, currentVal) {
+        selectEl.innerHTML = '';
+        PALETTE_COLORS.forEach(c => {
+          let opt = document.createElement('option'); opt.value = c.name; opt.text = c.name;
+          if (c.name === currentVal) opt.selected = true; selectEl.appendChild(opt);
+        });
+      }
+
+      function openContextModal(id = null) {
+        document.getElementById('modal-target-type').value = 'CONTEXT'; document.getElementById('modal-target-id').value = id || '';
+        document.getElementById('modal-color-group').style.display = 'block';
+
+        let nameEl = document.getElementById('modal-input-name'); let modeEl = document.getElementById('modal-select-mode'); let colorEl = document.getElementById('modal-select-color');
+
+        if (id) {
+          let ctx = sysConfigState.contexts.find(c => c.id === id);
+          document.getElementById('modal-title').innerText = 'EDITAR CONTEXTO'; nameEl.value = ctx.name;
+          populateColorSelect(colorEl, ctx.colorName); populateModeSelect(modeEl, ctx.mode);
+        } else {
+          document.getElementById('modal-title').innerText = 'NOVO CONTEXTO'; nameEl.value = '';
+          populateColorSelect(colorEl, 'Pattern'); populateModeSelect(modeEl, 'Entrada');
+        }
+        document.getElementById('sys-modal-overlay').style.display = 'flex';
+      }
+
+      function openActionModal(contextId, actionId = null) {
+        document.getElementById('modal-target-type').value = 'ACTION'; document.getElementById('modal-target-id').value = actionId || ''; document.getElementById('modal-parent-id').value = contextId;
+        document.getElementById('modal-color-group').style.display = 'none'; 
+
+        let nameEl = document.getElementById('modal-input-name'); let modeEl = document.getElementById('modal-select-mode');
+        if (actionId) {
+          let act = sysConfigState.actions.find(a => a.id === actionId);
+          document.getElementById('modal-title').innerText = 'EDITAR AÇÃO'; nameEl.value = act.name;
+          populateModeSelect(modeEl, act.modeOverride);
+        } else {
+          document.getElementById('modal-title').innerText = 'NOVA AÇÃO'; nameEl.value = '';
+          populateModeSelect(modeEl, 'Entrada');
+        }
+        document.getElementById('sys-modal-overlay').style.display = 'flex';
+      }
+
+      function closeModal() { document.getElementById('sys-modal-overlay').style.display = 'none'; }
+
+      function saveModal() {
+        let type = document.getElementById('modal-target-type').value; let id = document.getElementById('modal-target-id').value;
+        let name = document.getElementById('modal-input-name').value.trim(); let mode = document.getElementById('modal-select-mode').value;
+        if (!name) { showSidebarToast("Nome é obrigatório", "error"); return; }
+
+        if (type === 'CONTEXT') {
+          let colorName = document.getElementById('modal-select-color').value;
+          if (id) { let ctx = sysConfigState.contexts.find(c => c.id === id); if (ctx) { ctx.name = name; ctx.colorName = colorName; ctx.mode = mode; } } 
+          else { sysConfigState.contexts.push({ id: generateId(), name: name, colorName: colorName, mode: mode }); }
+        } else if (type === 'ACTION') {
+          let contextId = document.getElementById('modal-parent-id').value;
+          if (id) { let act = sysConfigState.actions.find(a => a.id === id); if (act) { act.name = name; act.modeOverride = mode; } } 
+          else { sysConfigState.actions.push({ id: generateId(), name: name, contextId: contextId, modeOverride: mode }); }
+        }
+        closeModal(); persistAndReload("Alteração submetida");
+      }
+
+      function deleteContext(id) { 
+        if(!confirm("Apagar contexto e TODAS as suas ações?")) return;
+        sysConfigState.contexts = sysConfigState.contexts.filter(c => c.id !== id); sysConfigState.actions = sysConfigState.actions.filter(a => a.contextId !== id); 
+        persistAndReload("Apagando do servidor...");
+      }
+      
+      function deleteAction(id) { 
+        sysConfigState.actions = sysConfigState.actions.filter(a => a.id !== id); 
+        persistAndReload("Apagando do servidor...");
+      }
+
+      // ===============================================
+      // BOTÕES DE UI (DASHBOARD, IMPRESSÃO, TOGGLES)
+      // ===============================================
+      document.getElementById('config-btn').onclick = function() {
+        var panel = document.getElementById('config-panel'); panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none';
+      };
+
+      document.getElementById('refresh-btn').onclick = function() {
+        var btn = this; var orig = btn.innerText; btn.innerText = '⏳'; showSidebarToast("Atualizando dados...", "loading");
+        google.script.run.withSuccessHandler(() => { btn.innerText = orig; showSidebarToast("Atualizado", "success"); }).withFailureHandler((err) => { btn.innerText = orig; showSidebarToast("Falha: " + err.message, "error"); }).updateHoursDashboard("LAST_WEEK"); 
+      };
+
+      document.getElementById('full-sync-btn').onclick = function() {
+        var btn = this; var orig = btn.innerText; btn.innerText = '⏳ AGUARDE...'; 
+        google.script.run.withSuccessHandler(function(c) {
+          if(c) { btn.innerText = '⏳ RECONSTRUINDO...'; showSidebarToast("Reconstruindo DATEN...", "loading"); google.script.run.withSuccessHandler(() => { btn.innerText = orig; showSidebarToast("Base limpa e reconstruída!", "success"); }).updateHoursDashboard("FULL_SYNC"); } else { btn.innerText = orig; }
+        }).promptFullSync(); 
+      };
+
+      document.getElementById('open-dash-btn').onclick = function() {
+        var btn = this; var orig = btn.innerText; btn.innerText = '⏳'; 
+        var skip = document.getElementById('skip-update-toggle').checked;
+        if (skip) { google.script.run.withSuccessHandler(() => { btn.innerText = orig; }).openDashboardModal(); } else { google.script.run.withSuccessHandler(() => { google.script.run.withSuccessHandler(() => { btn.innerText = orig; }).openDashboardModal(); }).updateHoursDashboard("FOCUSED"); }
+      };
+
+      document.getElementById('print-btn').onclick = function() {
+        var btn = this; var orig = btn.innerText; btn.innerText = '⏳'; var newTab = window.open('about:blank', '_blank'); if (newTab) newTab.document.write("<h3>Gerando PDF...</h3>");
+        google.script.run.withSuccessHandler((d) => { btn.innerText = orig; if(d && newTab) { var b = atob(d); var a = new Uint8Array(b.length); for(var i=0; i<b.length; i++) a[i] = b.charCodeAt(i); newTab.location.href = URL.createObjectURL(new Blob([a], {type: 'application/pdf'})); } }).printOverview(window.currentFocus, document.getElementById('header-toggle').checked); 
+      };
+      
+      document.getElementById('smart-merge-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '✂️'; google.script.run.withSuccessHandler(r => { btn.innerText = orig; if(r && r.startsWith("ERRO")) showSidebarToast(r, "error"); }).toggleSmartMerge(); };
+      document.getElementById('reset-block-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '🧹'; google.script.run.withSuccessHandler(r => { btn.innerText = orig; if(r && r.startsWith("ERRO")) showSidebarToast(r, "error"); }).resetBlock(); };
+      document.getElementById('show-all-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '...'; window.currentFocus = "ALL"; google.script.run.applySmartLock(true); google.script.run.withSuccessHandler(() => { btn.innerText = orig; }).showAllColumns(); };
+      document.getElementById('add-week-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '...'; google.script.run.withSuccessHandler(() => { btn.innerText = orig; google.script.run.withSuccessHandler(renderButtons).getWeekNames(); }).duplicateLast18ColBlock(); };
+
+      function renderButtons(weeks) {
+        var container = document.getElementById('list-container'); container.innerHTML = '';
+        if (!weeks || weeks.length === 0) return;
+        weeks.forEach(function(name, index) {
+          var bw = document.createElement('div'); bw.className = 'btn-container';
+          var btn = document.createElement('button'); btn.className = 'btn'; btn.innerText = name.replace('Week_', '').replace(/_/g, '/');
+          btn.onclick = function() { window.currentFocus = name; google.script.run.applySmartLock(false); google.script.run.focusWeek(name); }; bw.appendChild(btn);
+          if (index === 0) {
+            var cBtn = document.createElement('button'); cBtn.className = 'btn-action'; cBtn.innerText = '🧹'; cBtn.onclick = function() { google.script.run.clearLastWeekContent(); }; bw.appendChild(cBtn);
+            var dBtn = document.createElement('button'); dBtn.className = 'btn-action'; dBtn.innerText = 'X'; dBtn.onclick = function() { google.script.run.withSuccessHandler(renderButtons).getWeekNames(); google.script.run.deleteLast18ColBlock(); }; bw.appendChild(dBtn);
+          }
+          container.appendChild(bw);
+        });
+      }
+
+      function setupToggleListeners() {
+        const mealToggle = document.getElementById('meal-toggle'); const unwindToggle = document.getElementById('unwind-toggle');
+        function handleChange() {
+          showSidebarToast("Salvando preferências...", "loading");
+          google.script.run.withSuccessHandler(() => showSidebarToast("Preferências salvas!", "success")).saveToggleSettings(mealToggle.checked, unwindToggle.checked);
+        }
+        if (mealToggle) mealToggle.addEventListener('change', handleChange);
+        if (unwindToggle) unwindToggle.addEventListener('change', handleChange);
+      }
+
+      function loadToggleMemory() {
+        google.script.run.withSuccessHandler(function(s) {
+          if (s) {
+            const fontToggle = document.getElementById('font-toggle');
+            if (fontToggle) { fontToggle.checked = s.isColorFont; document.getElementById('font-toggle-label').innerText = s.isColorFont ? "FONTE: COR" : "FONTE: PADRÃO"; }
+            const mealToggle = document.getElementById('meal-toggle'); if (mealToggle && s.isMealSplit !== undefined) mealToggle.checked = s.isMealSplit; 
+          }
+        }).getSettingsState();
+      }
+
+      function syncTheme() { google.script.run.withSuccessHandler(t => document.body.classList.toggle('light-mode', t === 'light')).getSidebarTheme(); }
+      document.getElementById('font-toggle').onchange = function() {
+        var isColor = this.checked; var label = document.getElementById('font-toggle-label'); 
+        label.innerText = "ATUALIZANDO..."; showSidebarToast("Atualizando fonte...", "loading");
+        google.script.run.withSuccessHandler(() => { label.innerText = isColor ? "FONTE: COR" : "FONTE: PADRÃO"; showSidebarToast("Fonte aplicada!", "success"); }).toggleColorFont(isColor);
+      };
+
+      window.onload = function() {
+        syncTheme(); loadToggleMemory(); setupToggleListeners(); 
+        google.script.run.withSuccessHandler(renderButtons).getWeekNames();
+        
+        // Carga inicial garante que sysVersion fique sync
+        google.script.run.withSuccessHandler(res => {
+          sysVersion = res.newVersion; 
+          loadSystemConfigFromDatabase();
+          startStatePolling(); 
+        }).checkSystemVersion("INITIAL");
+      };
+      
+      setInterval(syncTheme, 2000);
+    </script>
+  </body>
+</html>

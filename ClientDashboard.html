@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        background-color: #000000;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+        margin: 0; padding: 20px;
+        display: flex; flex-direction: column; align-items: center;
+      }
+      .header { text-align: center; margin-bottom: 30px; }
+      h2 { letter-spacing: 3px; text-transform: uppercase; margin: 0; color: #ffffff; }
+      .subtitle { color: #888888; font-size: 10px; letter-spacing: 1px; }
+      
+      .container {
+        background: #0a0a0a;
+        border: 1px solid #262626;
+        border-radius: 4px;
+        padding: 20px;
+        width: 100%; max-width: 500px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      }
+      .chart-container { position: relative; margin: auto; height: 300px; width: 100%; }
+      
+      .stats-footer {
+        margin-top: 20px;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        font-family: 'Courier New', monospace; font-size: 12px;
+      }
+      .stat-box { border-top: 1px solid #262626; padding-top: 10px; }
+      .label { color: #888888; display: block; margin-bottom: 4px; }
+      .value { color: #0077B5; font-weight: bold; font-size: 16px; }
+    </style>
+  </head>
+<body>
+    <div class="header">
+      <h2>Vida em Padrões</h2>
+      <div class="subtitle">ANÁLISE DE COMPOSIÇÃO TEMPORAL</div>
+    </div>
+
+    <div id="status-box" style="margin-bottom:20px; padding:16px; border-radius:8px; border:1px solid #262626; background:#0a0a0a; width: 100%; max-width: 500px; box-sizing: border-box;">
+      <div style="font-size:11px; color:#888888; letter-spacing:1px;">RESUMO DA SEMANA</div>
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+        <div id="status-text" style="font-size:18px; font-weight:bold;">Analisando...</div>
+        <div id="score-box" style="font-size:24px; font-weight:bold; color: #0077B5;">0</div>
+      </div>
+
+      <div id="insights-text" style="margin-top:10px; font-size:13px; color:#cccccc; line-height:1.5;">
+        Carregando análise...
+      </div>
+    </div>
+
+    <button onclick="toggleAdvanced()" style="background: transparent; border: 1px solid #0077B5; color: #0077B5; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-family: monospace; margin-bottom: 20px; font-weight: bold; width: 100%; max-width: 500px;">
+      VER ANÁLISE COMPLETA
+    </button>
+
+    <div id="advanced-section" style="display: none; width: 100%; max-width: 500px;">
+      <div class="container">
+        <div class="chart-container">
+          <canvas id="mainChart"></canvas>
+        </div>
+        
+        <div class="stats-footer">
+          <div class="stat-box">
+            <span class="label">TOTAL LOGADO</span>
+            <span class="value" id="total-hours">--h</span>
+          </div>
+          <div class="stat-box">
+            <span class="label">EFICIÊNCIA</span>
+            <span class="value" id="efficiency-idx">--%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<script>
+      const CLIENTE_ID = "<?= codigoDoCliente ?>"; 
+
+      window.onload = function() {
+        google.script.run
+          .withSuccessHandler(drawDashboard)
+          .getClientDataForWeb(CLIENTE_ID); 
+      };
+
+      // --- NOVAS FUNÇÕES DE INTELIGÊNCIA ---
+      function calculateScore(stats, totalH) {
+        if (totalH === 0) return 0;
+
+        let score = 100;
+        const wastedH = stats["Tempo Perdido"] || 0;
+        const workH = stats["Foco"] || 0;
+        const leisureH = stats["Unwind"] || 0;
+        const sleepH = stats["Sono"] || 0;
+        
+        // Assume 7 dias na semana para média de sono
+        const sleepMed = sleepH / 7; 
+
+        // Penalidade por Tempo Perdido
+        let wastedPct = (wastedH / totalH) * 100;
+        score -= wastedPct * 1.5;
+
+        // Penalidade por Sono Ruim
+        if (sleepH > 0) { // Só aplica se tiver logado sono
+            if (sleepMed < 6) score -= 15;
+            else if (sleepMed < 7) score -= 5;
+        }
+
+        // Penalidade por Burnout (Muito trabalho, pouco descanso)
+        if (leisureH > 0 && workH > leisureH * 4) score -= 10;
+
+        return Math.max(0, Math.min(100, Math.round(score)));
+      }
+
+      function getStatus(score) {
+        if (score >= 80) return "🟢 Excelente consistência";
+        if (score >= 60) return "🟡 Boa, mas ajustável";
+        if (score >= 40) return "🟠 Desorganização leve";
+        return "🔴 Semana desregulada";
+      }
+
+      function generateInsights(stats, totalH) {
+        let insights = [];
+        const wastedH = stats["Tempo Perdido"] || 0;
+        const workH = stats["Foco"] || 0;
+        const leisureH = stats["Unwind"] || 0;
+        const sleepH = stats["Sono"] || 0;
+        const sleepMed = sleepH / 7;
+
+        let wastedPct = totalH > 0 ? (wastedH / totalH) * 100 : 0;
+
+        if (wastedPct > 20) insights.push("O 'Tempo Perdido' está acima de 20%. Isso derruba drasticamente a sua nota.");
+        if (sleepH > 0 && sleepMed < 6) insights.push("Média de sono abaixo de 6h/dia afeta a sua capacidade de foco real.");
+        if (leisureH > 0 && workH > leisureH * 4) insights.push("Alerta de desgaste: proporção de foco vs. descanso está desequilibrada.");
+        
+        if (insights.length === 0) insights.push("Métricas saudáveis. Mantenha o padrão operacional.");
+
+        return insights.join(" ");
+      }
+
+      // Função do Botão
+      function toggleAdvanced() {
+        const el = document.getElementById('advanced-section');
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+            document.querySelector('button').innerText = "ESCONDER ANÁLISE";
+        } else {
+            el.style.display = 'none';
+            document.querySelector('button').innerText = "VER ANÁLISE COMPLETA";
+        }
+      }
+
+      // --- DESENHANDO O DASHBOARD ---
+      function drawDashboard(res) {
+        if (res.status !== "SUCESSO") {
+           document.getElementById('status-text').innerText = "ERRO NA LEITURA";
+           document.getElementById('insights-text').innerText = res.message || "Verifique a conexão.";
+           return;
+        }
+
+        const stats = res.stats;
+        const totalHorasNum = parseFloat(res.totalHoras) || 0;
+
+        // INJETANDO INTELIGÊNCIA
+        const score = calculateScore(stats, totalHorasNum);
+        document.getElementById('score-box').innerText = score;
+        document.getElementById('status-text').innerText = getStatus(score);
+        document.getElementById('insights-text').innerText = generateInsights(stats, totalHorasNum);
+
+        // Atualizando o resto da interface (Gráficos)
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        const labels = Object.keys(stats);
+        const values = Object.values(stats);
+
+        const foco = stats["Foco"];
+        const perdido = stats["Tempo Perdido"];
+        const eficiencia = (foco + perdido) > 0 ? ((foco / (foco + perdido)) * 100).toFixed(1) : 0;
+
+        document.getElementById('total-hours').innerText = res.totalHoras + "h";
+        document.getElementById('efficiency-idx').innerText = eficiencia + "%";
+
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: values,
+              backgroundColor: ['#0077B5', '#222222', '#333333', '#444444', '#ff4444'],
+              borderColor: '#000000',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { color: '#888888', font: { family: 'monospace', size: 10 } } }
+            },
+            cutout: '70%'
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
