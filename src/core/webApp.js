@@ -5,7 +5,7 @@
 function doGet(e) {
   // Aqui ele puxa o visual que nós criamos. 
   // IMPORTANTE: Se o seu arquivo HTML se chamar "clientdashboard.html", mude o nome abaixo para 'clientdashboard'
-  var htmlOutput = HtmlService.createTemplateFromFile('dashboard')
+  var htmlOutput = HtmlService.createTemplateFromFile('ui/dashboard')
       .evaluate()
       .setTitle('📊 Vida em Padrões - Diagnóstico')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL) 
