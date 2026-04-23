@@ -9,9 +9,9 @@ function applyOutlookColorsOptimized(e) {
   const range = sheet.getRange(1, 1, lastRow, 18);
   let values = range.getValues();
   
-  // Sincronia da Coluna O (Mantida original)
+  // Sincronia da Coluna O (Ignorando Cabeçalho e Pattern - Começa na Linha 3)
   const masterSelectionMap = {};
-  for (let i = 0; i < values.length; i++) {
+  for (let i = 2; i < values.length; i++) { // 👇 i = 2
     const ctx = String(values[i][13] || "").trim().toLowerCase(); 
     const sub = String(values[i][17] || "").trim();               
     if (ctx !== "" && sub === "") {
@@ -19,11 +19,12 @@ function applyOutlookColorsOptimized(e) {
     }
   }
 
-  for (let i = 0; i < values.length; i++) {
+  for (let i = 2; i < values.length; i++) { // 👇 i = 2
     const ctx = String(values[i][13] || "").trim().toLowerCase();
     const sub = String(values[i][17] || "").trim();
     if (sub !== "" && masterSelectionMap[ctx] !== undefined) {
       if (values[i][14] !== masterSelectionMap[ctx]) {
+        // Agora isso nunca vai tentar escrever na célula O2
         sheet.getRange(i + 1, 15).setValue(masterSelectionMap[ctx]);
       }
     }
@@ -42,9 +43,9 @@ function applyOutlookColorsOptimized(e) {
   
   const patternHex = "#fff2cc";
 
-  // MAPEAMENTO: Índice 2 (C) é Fundo, Índice 4 (E) é Texto
+  // MAPEAMENTO: Fundo e Texto (Ignorando Cabeçalho e Pattern)
   const fillToTextMap = {};
-  for (let i = 0; i < values.length; i++) {
+  for (let i = 2; i < values.length; i++) { // 👇 i = 2
     const fillHex = values[i][2]; 
     const textHex = values[i][4]; 
     if (isValidHex(fillHex) && isValidHex(textHex)) {
@@ -52,10 +53,11 @@ function applyOutlookColorsOptimized(e) {
     }
   }
 
-  for (let i = 0; i < values.length; i++) {
+  // APLICAÇÃO DE CORES (Começa na Linha 3)
+  for (let i = 2; i < values.length; i++) { // 👇 i = 2
     const row = values[i];
 
-    // COLUNAS DE BLOCO PURO (A, C, E, G, P) - Mantido original
+    // COLUNAS DE BLOCO PURO (A, C, E, G, P) 
     [0, 2, 4, 6, 15].forEach(colIdx => {
       if (isValidHex(row[colIdx])) {
         const hex = row[colIdx].toString().trim();
@@ -65,7 +67,6 @@ function applyOutlookColorsOptimized(e) {
     });
 
     // --- AJUSTE ESPECÍFICO COLUNA J (9) ---
-    // Faz a J espelhar a cor da Side (A) para não ficar amarela na linha 27
     if (isValidHex(row[0])) {
       const sideHex = row[0].toString().trim();
       bg[i][9] = sideHex;
@@ -73,7 +74,6 @@ function applyOutlookColorsOptimized(e) {
     }
 
     // --- COLUNA K (10) MANTIDA COM SEU CONCEITO ---
-    // Fundo de C + Texto mapeado de E + Borda de G
     if (isValidHex(row[2])) {
       const baseFillRaw = row[2].toString().trim();
       const baseFillLower = baseFillRaw.toLowerCase();
@@ -103,8 +103,8 @@ function applyOutlookColorsOptimized(e) {
   range.setBackgrounds(bg);
   range.setFontColors(fontColors);
 
-  // Bordas na coluna K vinda da G (Stroke) - Mantido funcionando
-  for (let i = 0; i < values.length; i++) {
+  // Bordas na coluna K vinda da G (Stroke)
+  for (let i = 2; i < values.length; i++) { // 👇 i = 2
     if (isValidHex(values[i][2]) && isValidHex(values[i][6])) {
       sheet.getRange(i + 1, 11).setBorder(true, true, true, true, null, null, values[i][6], SpreadsheetApp.BorderStyle.SOLID);
     }

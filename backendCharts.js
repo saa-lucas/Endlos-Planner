@@ -92,11 +92,11 @@ function getDashboardDataJson() {
     const lastRow = sheet.getLastRow();
     let timeline = [];
     if (lastRow >= 2) {
-      // Agora pegamos da Coluna A (1) até a Coluna N (14)
-      const data = sheet.getRange(2, 1, lastRow - 1, 14).getValues();
+      // 👇 AQUI ESTAVA O BUG: Mudamos de ler da Coluna 1 (A) para a Coluna 9 (I)
+      const data = sheet.getRange(2, 9, lastRow - 1, 14).getValues();
       timeline = data.map(row => {
         
-        let rawDay = row[7]; // Coluna H: Dia (Ex: 'Seg')
+        let rawDay = row[7]; // Agora row[7] mapeia perfeitamente para a Coluna P
         let safeDayAbbr = "";
         
         // Blindado: Data Objeto vs Variações de Texto
@@ -351,7 +351,6 @@ function saveSystemConfigToPalette(jsonString) {
   }
 
   // 5. ATUALIZAÇÃO E ESTABILIDADE: Passa o controle para o Mutex
-  // Isso garante que não teremos múltiplas repinturas simultâneas
   if (typeof triggerSafeGlobalRepaint === 'function') {
     triggerSafeGlobalRepaint();
   } else {

@@ -27,6 +27,14 @@
             .toggle-label { font-size: 10px; color: var(--text-secondary) !important; font-family: 'Courier New', monospace; }
             .sub-header { font-size: 9px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; margin-bottom: 6px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; }
 
+            /* COLOR PICKER (RECUPERADO) */
+            .color-wrapper { display: flex; align-items: center; background-color: var(--bg-main); border: 1px solid var(--border); border-radius: 2px; padding: 2px; width: 85px; transition: border-color 0.2s ease; }
+            .color-wrapper:focus-within { border-color: var(--text-secondary); }
+            .color-hex { background: transparent !important; border: none !important; color: var(--text-primary) !important; font-family: 'Courier New', monospace; font-size: 10px; width: 100%; outline: none; padding-left: 4px; text-transform: uppercase; }
+            .color-picker { -webkit-appearance: none; border: none !important; width: 18px !important; height: 18px !important; padding: 0 !important; background: none !important; cursor: pointer; flex-shrink: 0; }
+            .color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+            .color-picker::-webkit-color-swatch { border: 1px solid var(--border); border-radius: 2px; }
+
             .search-input, .sys-input { width: 100%; background: var(--bg-btn); color: var(--text-primary); border: 1px solid var(--border); padding: 8px 10px; font-family: 'Courier New', monospace; font-size: 11px; border-radius: 4px; outline: none; margin-bottom: 12px; }
             .sys-input:focus { border-color: var(--text-secondary); }
 
@@ -93,14 +101,48 @@
       <div class="sub-header">Preferências Globais</div>
       <div class="setting-row">
         <span class="toggle-label">TEMA VISUAL</span>
-        <select id="theme-selector" style="cursor:pointer; width:auto; margin:0;">
+        <select id="theme-selector" style="cursor:pointer; width:auto; margin:0; max-width: 145px;">
           <option value="DARK_CLASSIC">DARK (CLÁSSICO)</option>
           <option value="LIGHT_CLASSIC">LIGHT (CLÁSSICO)</option>
           <option value="DARK_MODERN">DARK (MODERNO)</option>
           <option value="LIGHT_MODERN">LIGHT (MODERNO)</option>
+          <option value="CREATE_NEW">➕ CRIAR NOVO...</option>
         </select>
       </div>
-      
+
+      <div id="ui-customizer" style="display: none; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px dashed var(--border);">
+        <div class="sub-header">Customizar Cores do Tema</div>
+        
+        <div class="setting-row">
+          <span class="toggle-label">FUNDO CABEÇALHO</span>
+          <div class="color-wrapper"><input type="text" class="color-hex" id="hex-header-bg" value="#000000" maxlength="7"><input type="color" class="color-picker" id="ui-header-bg" value="#000000"></div>
+        </div>
+        <div class="setting-row">
+          <span class="toggle-label">TEXTO CABEÇALHO</span>
+          <div class="color-wrapper"><input type="text" class="color-hex" id="hex-header-text" value="#FFFFFF" maxlength="7"><input type="color" class="color-picker" id="ui-header-text" value="#ffffff"></div>
+        </div>
+        <div class="setting-row">
+          <span class="toggle-label">FUNDO TIMELINE</span>
+          <div class="color-wrapper"><input type="text" class="color-hex" id="hex-time-bg" value="#000000" maxlength="7"><input type="color" class="color-picker" id="ui-time-bg" value="#000000"></div>
+        </div>
+        <div class="setting-row">
+          <span class="toggle-label">TEXTO TIMELINE</span>
+          <div class="color-wrapper"><input type="text" class="color-hex" id="hex-time-text" value="#FFFFFF" maxlength="7"><input type="color" class="color-picker" id="ui-time-text" value="#ffffff"></div>
+        </div>
+        <div class="setting-row">
+          <span class="toggle-label">FUNDO PADRÃO</span>
+          <div class="color-wrapper"><input type="text" class="color-hex" id="hex-pattern-fill" value="#F9F9F9" maxlength="7"><input type="color" class="color-picker" id="ui-pattern-fill" value="#f9f9f9"></div>
+        </div>
+        <div class="setting-row">
+          <span class="toggle-label">LATERAL PADRÃO</span>
+          <div class="color-wrapper"><input type="text" class="color-hex" id="hex-pattern-side" value="#E0E0E0" maxlength="7"><input type="color" class="color-picker" id="ui-pattern-side" value="#e0e0e0"></div>
+        </div>
+        
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <button id="save-custom-btn" class="btn-large-print" style="flex: 1; margin: 0;">💾 SALVAR </button>
+          <button id="delete-custom-btn" class="btn-large-print" style="flex: 1; margin: 0; border-color: #ff555540 !important; color: #ff6b6b !important;" title="Excluir este tema">🗑️ APAGAR</button>
+        </div>
+      </div>
       <div class="setting-row"><span class="toggle-label" id="header-toggle-label">CABEÇALHOS: OFF</span><label class="switch"><input type="checkbox" id="header-toggle"><span class="slider"></span></label></div>
       <div class="setting-row"><span class="toggle-label" id="font-toggle-label">FONTE: PADRÃO</span><label class="switch"><input type="checkbox" id="font-toggle"><span class="slider"></span></label></div>
       <div class="setting-row"><span class="toggle-label" id="meal-toggle-label">MESCLAR REFEIÇÃO: ON</span><label class="switch"><input type="checkbox" id="meal-toggle" checked><span class="slider"></span></label></div>
@@ -159,6 +201,8 @@
 
     <script>
       window.currentFocus = "ALL"; 
+      let currentThemeId = "DARK_MODERN"; 
+      let previewTimeout = null; 
 
       // ===============================================
       // TOAST SYSTEM 
@@ -171,6 +215,100 @@
         toast.innerHTML = `${icon} ${message}`; toast.style.borderLeftColor = color; toast.classList.add('show');
         if (type !== 'loading') { setTimeout(() => toast.classList.remove('show'), 4000); }
       }
+
+      // ===============================================
+      // THEME & CUSTOMIZER LOGIC
+      // ===============================================
+      function updateColorPickers(ui) {
+        if (!ui) return;
+        const setCol = (id, val) => {
+          let safeVal = val || "#000000";
+          document.getElementById(id).value = safeVal;
+          let hexInput = document.getElementById(id.replace('ui-', 'hex-'));
+          if(hexInput) hexInput.value = safeVal.toUpperCase();
+        };
+        setCol('ui-header-bg', ui.headerBg); setCol('ui-header-text', ui.headerText);
+        setCol('ui-time-bg', ui.timeBg); setCol('ui-time-text', ui.timeText);
+        setCol('ui-pattern-fill', ui.patternFill || "#f9f9f9"); setCol('ui-pattern-side', ui.patternSide || "#e0e0e0");
+      }
+
+      function triggerLivePreview() {
+        if (!currentThemeId.startsWith("CUSTOM_")) return; 
+        clearTimeout(previewTimeout);
+        previewTimeout = setTimeout(() => {
+          let tempUi = {
+            headerBg: document.getElementById('ui-header-bg').value, headerText: document.getElementById('ui-header-text').value,
+            timeBg: document.getElementById('ui-time-bg').value, timeText: document.getElementById('ui-time-text').value,
+            patternFill: document.getElementById('ui-pattern-fill').value, patternSide: document.getElementById('ui-pattern-side').value  
+          };
+          showSidebarToast("Aplicando cor...", "loading");
+          google.script.run.withSuccessHandler(() => { showSidebarToast("Preview aplicado!", "success"); }).previewThemeColors(tempUi);
+        }, 600); 
+      }
+
+      document.querySelectorAll('.color-wrapper').forEach(wrapper => {
+        const hexInput = wrapper.querySelector('.color-hex'); const colorInput = wrapper.querySelector('.color-picker');
+        if(colorInput && hexInput) {
+            colorInput.addEventListener('input', (e) => { hexInput.value = e.target.value.toUpperCase(); triggerLivePreview(); });
+            hexInput.addEventListener('input', (e) => {
+              let val = e.target.value; if (!val.startsWith('#')) val = '#' + val;
+              if (/^#[0-9A-F]{6}$/i.test(val)) { colorInput.value = val; triggerLivePreview(); }
+            });
+        }
+      });
+
+      document.getElementById('save-custom-btn').onclick = function() {
+        let newUi = {
+          headerBg: document.getElementById('ui-header-bg').value, headerText: document.getElementById('ui-header-text').value,
+          timeBg: document.getElementById('ui-time-bg').value, timeText: document.getElementById('ui-time-text').value,
+          patternFill: document.getElementById('ui-pattern-fill').value, patternSide: document.getElementById('ui-pattern-side').value  
+        };
+        var btn = this; var originalText = "💾 SALVAR"; btn.innerText = 'SALVANDO...';
+        google.script.run.withSuccessHandler(function(res) {
+          if(res && res.startsWith("ERRO")) { showSidebarToast(res, "error"); btn.innerText = originalText; } 
+          else { btn.innerText = '✅ SALVO!'; setTimeout(() => { btn.innerText = originalText; }, 2000); }
+        }).saveCustomThemeUI(currentThemeId, newUi);
+      };
+
+      document.getElementById('delete-custom-btn').onclick = function() {
+        if (!confirm("Tem certeza que deseja apagar este tema permanentemente?")) return;
+        var btn = this; var originalText = btn.innerText; btn.innerText = '⏳'; btn.disabled = true;
+        google.script.run.withSuccessHandler(function(res) {
+          btn.disabled = false; btn.innerText = originalText;
+          if (res.status === "SUCESSO") {
+            let select = document.getElementById('theme-selector');
+            for (let i = 0; i < select.options.length; i++) { if (select.options[i].value === currentThemeId) { select.remove(i); break; } }
+            select.value = res.fallbackTheme; select.dispatchEvent(new Event('change'));
+          } else { showSidebarToast(res.message, "error"); }
+        }).deleteCustomTheme(currentThemeId);
+      };
+
+      document.getElementById('theme-selector').onchange = function() {
+        let selectedValue = this.value;
+        if (selectedValue === "CREATE_NEW") {
+          this.disabled = true; showSidebarToast("Gerando novo tema...", "loading");
+          google.script.run.withSuccessHandler((res) => {
+            this.disabled = false;
+            if (res.status === "SUCESSO") {
+               let newOpt = document.createElement("option"); newOpt.value = res.themeKey; newOpt.text = "⭐ " + res.themeName.toUpperCase();
+               this.insertBefore(newOpt, this.lastElementChild);
+               this.value = res.themeKey; currentThemeId = res.themeKey;
+               document.getElementById('ui-customizer').style.display = 'block'; updateColorPickers(res.ui);
+               showSidebarToast(res.themeName + " ativado!", "success");
+            } else { showSidebarToast(res.message, "error"); this.value = currentThemeId; }
+          }).createNewAutoTheme();
+          return;
+        }
+        currentThemeId = selectedValue;
+        document.getElementById('ui-customizer').style.display = currentThemeId.startsWith("CUSTOM_") ? "block" : "none";
+        
+        var originalColor = this.style.color; this.style.color = "#ffffff"; 
+        google.script.run.withSuccessHandler((jsonRes) => {
+          this.style.color = originalColor;
+          if (jsonRes && jsonRes.startsWith("ERRO")) { showSidebarToast(jsonRes, "error"); } 
+          else { let res = JSON.parse(jsonRes); updateColorPickers(res.ui); }
+        }).applyTheme(currentThemeId);
+      };
 
       // ===============================================
       // SYSTEM BUILDER (ESTADO ÚNICO & POLLING)
@@ -193,36 +331,26 @@
       let sysConfigState = { contexts: [], actions: [] };
       let searchQuery = "";
       let sysVersion = "0";
-      
-      // FILA DE EXECUÇÃO FORÇADA
       let pendingActionsQueue = [];
       let isQueueProcessing = false;
 
       function generateId() { return Math.random().toString(36).substr(2, 9); }
 
-      // 🔄 POLLING (Verifica banco a cada 5s)
       function startStatePolling() {
         setInterval(() => {
           if (document.getElementById('sys-modal-overlay').style.display === 'flex' && !isQueueProcessing) return;
           google.script.run.withSuccessHandler(res => {
-            if (res.needsUpdate) {
-              sysVersion = res.newVersion;
-              document.getElementById('sync-status').innerText = "Atualizando estado...";
-              loadSystemConfigFromDatabase(true); 
-            }
+            if (res.needsUpdate) { sysVersion = res.newVersion; document.getElementById('sync-status').innerText = "Atualizando estado..."; loadSystemConfigFromDatabase(true); }
           }).checkSystemVersion(sysVersion);
         }, 5000);
       }
 
       function loadSystemConfigFromDatabase(isBackgroundUpdate = false) {
         if (!isBackgroundUpdate) showSidebarToast("Lendo banco...", "loading");
-        
         google.script.run.withSuccessHandler(function(jsonString) {
-             sysConfigState = JSON.parse(jsonString);
-             renderTree(); 
+             sysConfigState = JSON.parse(jsonString); renderTree(); 
              if (!isBackgroundUpdate) showSidebarToast("Sincronizado", "success");
              document.getElementById('sync-status').innerText = "Sistema Sincronizado";
-             
              checkForOrphanActions(); 
           }).withFailureHandler(err => { if(!isBackgroundUpdate) showSidebarToast("Erro: " + err.message, "error"); })
           .getSystemConfigFromPalette();
@@ -233,33 +361,22 @@
       function persistAndReload(successMsg) {
         showSidebarToast("Gravando no servidor...", "loading");
         google.script.run.withSuccessHandler(() => {
-           showSidebarToast(successMsg, "success");
-           loadSystemConfigFromDatabase(); 
-        }).withFailureHandler(err => showSidebarToast("Falha: " + err.message, "error"))
-        .saveSystemConfigToPalette(JSON.stringify(sysConfigState));
+           showSidebarToast(successMsg, "success"); loadSystemConfigFromDatabase(); 
+        }).withFailureHandler(err => showSidebarToast("Falha: " + err.message, "error")).saveSystemConfigToPalette(JSON.stringify(sysConfigState));
       }
 
-      // =====================================================================
-      // SISTEMA DE FILA: AÇÕES ÓRFÃS (SEM MODE)
-      // =====================================================================
+      // SISTEMA DE FILA: AÇÕES ÓRFÃS
       function checkForOrphanActions() {
         const orphans = sysConfigState.actions.filter(a => !a.modeOverride || a.modeOverride.trim() === "");
-        
         if (orphans.length > 0) {
-          orphans.forEach(o => {
-            if (!pendingActionsQueue.find(p => p.id === o.id)) pendingActionsQueue.push(o);
-          });
+          orphans.forEach(o => { if (!pendingActionsQueue.find(p => p.id === o.id)) pendingActionsQueue.push(o); });
           if (!isQueueProcessing) processNextOrphanAction();
         }
       }
 
       function processNextOrphanAction() {
-        if (pendingActionsQueue.length === 0) {
-          isQueueProcessing = false; return;
-        }
-
-        isQueueProcessing = true;
-        const actionToProcess = pendingActionsQueue[0];
+        if (pendingActionsQueue.length === 0) { isQueueProcessing = false; return; }
+        isQueueProcessing = true; const actionToProcess = pendingActionsQueue[0];
         const parentCtx = sysConfigState.contexts.find(c => c.id === actionToProcess.contextId);
         
         document.getElementById('forced-act-name').innerText = actionToProcess.name;
@@ -273,120 +390,64 @@
         btnSave.onclick = () => {
           let selectedMode = selectEl.value;
           if (!selectedMode) { showSidebarToast("Selecione um modo obrigatório", "error"); return; }
-          
           btnSave.innerText = "⏳ GRAVANDO..."; btnSave.disabled = true;
-          
           google.script.run.withSuccessHandler(() => {
-             pendingActionsQueue.shift(); 
-             btnSave.innerText = "SALVAR & CONTINUAR"; btnSave.disabled = false;
+             pendingActionsQueue.shift(); btnSave.innerText = "SALVAR & CONTINUAR"; btnSave.disabled = false;
              document.getElementById('forced-modal-overlay').style.display = 'none';
-             processNextOrphanAction(); 
-             if (pendingActionsQueue.length === 0) loadSystemConfigFromDatabase();
+             processNextOrphanAction(); if (pendingActionsQueue.length === 0) loadSystemConfigFromDatabase();
           }).withFailureHandler(err => {
-             showSidebarToast(err.message, "error");
-             btnSave.innerText = "TENTAR NOVAMENTE"; btnSave.disabled = false;
+             showSidebarToast(err.message, "error"); btnSave.innerText = "TENTAR NOVAMENTE"; btnSave.disabled = false;
           }).saveSingleActionMode(actionToProcess.name, selectedMode);
         };
-
         document.getElementById('forced-modal-overlay').style.display = 'flex';
       }
 
-      // =====================================================================
-      // TREE RENDERER 
-      // =====================================================================
+      // TREE RENDERER
       function renderTree() {
         const container = document.getElementById('builder-tree-list'); container.innerHTML = '';
         const isAdvanced = document.getElementById('adv-edit-toggle').checked;
-        
         let filteredCtx = sysConfigState.contexts.filter(c => c.name.toLowerCase().includes(searchQuery) || sysConfigState.actions.some(a => a.contextId === c.id && a.name.toLowerCase().includes(searchQuery)));
 
-        if (filteredCtx.length === 0) {
-            container.innerHTML = '<div style="font-size:10px; color:var(--text-secondary); text-align:center;">Nenhum item válido encontrado.</div>';
-            return;
-        }
+        if (filteredCtx.length === 0) { container.innerHTML = '<div style="font-size:10px; color:var(--text-secondary); text-align:center;">Nenhum item válido encontrado.</div>'; return; }
 
         filteredCtx.forEach(ctx => {
           const node = document.createElement('div'); node.className = 'tree-node';
-          let headerHtml = `
-            <div class="tree-header">
-              <div class="tree-title-group">
-                <div class="tree-color-dot" style="background:${getColorHex(ctx.colorName)}"></div>
-                <span class="tree-title">${ctx.name}</span>
-                <span class="tree-mode">${ctx.mode || '⚠️ VAZIO'}</span>
-              </div>
-              ${isAdvanced ? `<div style="display:flex; gap:4px;"><button class="icon-btn" onclick="openContextModal('${ctx.id}')">✏️</button><button class="icon-btn del" style="color:var(--toast-error)!important;" onclick="deleteContext('${ctx.id}')">🗑️</button></div>` : ''}
-            </div>
-          `;
+          let headerHtml = `<div class="tree-header"><div class="tree-title-group"><div class="tree-color-dot" style="background:${getColorHex(ctx.colorName)}"></div><span class="tree-title">${ctx.name}</span><span class="tree-mode">${ctx.mode || '⚠️ VAZIO'}</span></div>${isAdvanced ? `<div style="display:flex; gap:4px;"><button class="icon-btn" onclick="openContextModal('${ctx.id}')">✏️</button><button class="icon-btn del" style="color:var(--toast-error)!important;" onclick="deleteContext('${ctx.id}')">🗑️</button></div>` : ''}</div>`;
           
           let acts = sysConfigState.actions.filter(a => a.contextId === ctx.id && a.name.toLowerCase().includes(searchQuery));
           let actsHtml = `<div class="tree-actions-list">`;
           acts.forEach(a => {
             let modeDisplay = a.modeOverride ? a.modeOverride : `⚠️ ERRO (Sem Mode)`;
-            actsHtml += `
-              <div class="tree-action-item">
-                <div class="tree-title-group">
-                  <span class="act-title">${a.name}</span><span class="tree-mode" style="${!a.modeOverride ? 'color:var(--toast-error); font-weight:bold;' : ''}">${modeDisplay}</span>
-                </div>
-                ${isAdvanced ? `<div style="display:flex; gap:4px;"><button class="icon-btn" onclick="openActionModal('${ctx.id}', '${a.id}')">✏️</button><button class="icon-btn del" style="color:var(--toast-error)!important;" onclick="deleteAction('${a.id}')">🗑️</button></div>` : ''}
-              </div>
-            `;
+            actsHtml += `<div class="tree-action-item"><div class="tree-title-group"><span class="act-title">${a.name}</span><span class="tree-mode" style="${!a.modeOverride ? 'color:var(--toast-error); font-weight:bold;' : ''}">${modeDisplay}</span></div>${isAdvanced ? `<div style="display:flex; gap:4px;"><button class="icon-btn" onclick="openActionModal('${ctx.id}', '${a.id}')">✏️</button><button class="icon-btn del" style="color:var(--toast-error)!important;" onclick="deleteAction('${a.id}')">🗑️</button></div>` : ''}</div>`;
           });
           if (isAdvanced) actsHtml += `<button class="icon-btn" style="margin-top:6px; font-weight:bold; font-size:10px;" onclick="openActionModal('${ctx.id}', null)">+ Adicionar Ação</button>`;
-          actsHtml += `</div>`;
-
-          node.innerHTML = headerHtml + actsHtml; container.appendChild(node);
+          actsHtml += `</div>`; node.innerHTML = headerHtml + actsHtml; container.appendChild(node);
         });
       }
 
-      // =====================================================================
-      // MODAL CONTROLLERS
-      // =====================================================================
       function populateModeSelect(selectEl, currentVal) {
-        selectEl.innerHTML = '';
-        MODES_OPTIONS.forEach(m => {
-          let opt = document.createElement('option'); opt.value = m; opt.text = m;
-          if (m === currentVal) opt.selected = true; selectEl.appendChild(opt);
-        });
+        selectEl.innerHTML = ''; MODES_OPTIONS.forEach(m => { let opt = document.createElement('option'); opt.value = m; opt.text = m; if (m === currentVal) opt.selected = true; selectEl.appendChild(opt); });
       }
 
       function populateColorSelect(selectEl, currentVal) {
-        selectEl.innerHTML = '';
-        PALETTE_COLORS.forEach(c => {
-          let opt = document.createElement('option'); opt.value = c.name; opt.text = c.name;
-          if (c.name === currentVal) opt.selected = true; selectEl.appendChild(opt);
-        });
+        selectEl.innerHTML = ''; PALETTE_COLORS.forEach(c => { let opt = document.createElement('option'); opt.value = c.name; opt.text = c.name; if (c.name === currentVal) opt.selected = true; selectEl.appendChild(opt); });
       }
 
       function openContextModal(id = null) {
         document.getElementById('modal-target-type').value = 'CONTEXT'; document.getElementById('modal-target-id').value = id || '';
         document.getElementById('modal-color-group').style.display = 'block';
-
         let nameEl = document.getElementById('modal-input-name'); let modeEl = document.getElementById('modal-select-mode'); let colorEl = document.getElementById('modal-select-color');
-
-        if (id) {
-          let ctx = sysConfigState.contexts.find(c => c.id === id);
-          document.getElementById('modal-title').innerText = 'EDITAR CONTEXTO'; nameEl.value = ctx.name;
-          populateColorSelect(colorEl, ctx.colorName); populateModeSelect(modeEl, ctx.mode);
-        } else {
-          document.getElementById('modal-title').innerText = 'NOVO CONTEXTO'; nameEl.value = '';
-          populateColorSelect(colorEl, 'Pattern'); populateModeSelect(modeEl, 'Entrada');
-        }
+        if (id) { let ctx = sysConfigState.contexts.find(c => c.id === id); document.getElementById('modal-title').innerText = 'EDITAR CONTEXTO'; nameEl.value = ctx.name; populateColorSelect(colorEl, ctx.colorName); populateModeSelect(modeEl, ctx.mode); } 
+        else { document.getElementById('modal-title').innerText = 'NOVO CONTEXTO'; nameEl.value = ''; populateColorSelect(colorEl, 'Pattern'); populateModeSelect(modeEl, 'Entrada'); }
         document.getElementById('sys-modal-overlay').style.display = 'flex';
       }
 
       function openActionModal(contextId, actionId = null) {
         document.getElementById('modal-target-type').value = 'ACTION'; document.getElementById('modal-target-id').value = actionId || ''; document.getElementById('modal-parent-id').value = contextId;
         document.getElementById('modal-color-group').style.display = 'none'; 
-
         let nameEl = document.getElementById('modal-input-name'); let modeEl = document.getElementById('modal-select-mode');
-        if (actionId) {
-          let act = sysConfigState.actions.find(a => a.id === actionId);
-          document.getElementById('modal-title').innerText = 'EDITAR AÇÃO'; nameEl.value = act.name;
-          populateModeSelect(modeEl, act.modeOverride);
-        } else {
-          document.getElementById('modal-title').innerText = 'NOVA AÇÃO'; nameEl.value = '';
-          populateModeSelect(modeEl, 'Entrada');
-        }
+        if (actionId) { let act = sysConfigState.actions.find(a => a.id === actionId); document.getElementById('modal-title').innerText = 'EDITAR AÇÃO'; nameEl.value = act.name; populateModeSelect(modeEl, act.modeOverride); } 
+        else { document.getElementById('modal-title').innerText = 'NOVA AÇÃO'; nameEl.value = ''; populateModeSelect(modeEl, 'Entrada'); }
         document.getElementById('sys-modal-overlay').style.display = 'flex';
       }
 
@@ -396,7 +457,6 @@
         let type = document.getElementById('modal-target-type').value; let id = document.getElementById('modal-target-id').value;
         let name = document.getElementById('modal-input-name').value.trim(); let mode = document.getElementById('modal-select-mode').value;
         if (!name) { showSidebarToast("Nome é obrigatório", "error"); return; }
-
         if (type === 'CONTEXT') {
           let colorName = document.getElementById('modal-select-color').value;
           if (id) { let ctx = sysConfigState.contexts.find(c => c.id === id); if (ctx) { ctx.name = name; ctx.colorName = colorName; ctx.mode = mode; } } 
@@ -415,41 +475,16 @@
         persistAndReload("Apagando do servidor...");
       }
       
-      function deleteAction(id) { 
-        sysConfigState.actions = sysConfigState.actions.filter(a => a.id !== id); 
-        persistAndReload("Apagando do servidor...");
-      }
+      function deleteAction(id) { sysConfigState.actions = sysConfigState.actions.filter(a => a.id !== id); persistAndReload("Apagando do servidor..."); }
 
       // ===============================================
       // BOTÕES DE UI (DASHBOARD, IMPRESSÃO, TOGGLES)
       // ===============================================
-      document.getElementById('config-btn').onclick = function() {
-        var panel = document.getElementById('config-panel'); panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none';
-      };
-
-      document.getElementById('refresh-btn').onclick = function() {
-        var btn = this; var orig = btn.innerText; btn.innerText = '⏳'; showSidebarToast("Atualizando dados...", "loading");
-        google.script.run.withSuccessHandler(() => { btn.innerText = orig; showSidebarToast("Atualizado", "success"); }).withFailureHandler((err) => { btn.innerText = orig; showSidebarToast("Falha: " + err.message, "error"); }).updateHoursDashboard("LAST_WEEK"); 
-      };
-
-      document.getElementById('full-sync-btn').onclick = function() {
-        var btn = this; var orig = btn.innerText; btn.innerText = '⏳ AGUARDE...'; 
-        google.script.run.withSuccessHandler(function(c) {
-          if(c) { btn.innerText = '⏳ RECONSTRUINDO...'; showSidebarToast("Reconstruindo DATEN...", "loading"); google.script.run.withSuccessHandler(() => { btn.innerText = orig; showSidebarToast("Base limpa e reconstruída!", "success"); }).updateHoursDashboard("FULL_SYNC"); } else { btn.innerText = orig; }
-        }).promptFullSync(); 
-      };
-
-      document.getElementById('open-dash-btn').onclick = function() {
-        var btn = this; var orig = btn.innerText; btn.innerText = '⏳'; 
-        var skip = document.getElementById('skip-update-toggle').checked;
-        if (skip) { google.script.run.withSuccessHandler(() => { btn.innerText = orig; }).openDashboardModal(); } else { google.script.run.withSuccessHandler(() => { google.script.run.withSuccessHandler(() => { btn.innerText = orig; }).openDashboardModal(); }).updateHoursDashboard("FOCUSED"); }
-      };
-
-      document.getElementById('print-btn').onclick = function() {
-        var btn = this; var orig = btn.innerText; btn.innerText = '⏳'; var newTab = window.open('about:blank', '_blank'); if (newTab) newTab.document.write("<h3>Gerando PDF...</h3>");
-        google.script.run.withSuccessHandler((d) => { btn.innerText = orig; if(d && newTab) { var b = atob(d); var a = new Uint8Array(b.length); for(var i=0; i<b.length; i++) a[i] = b.charCodeAt(i); newTab.location.href = URL.createObjectURL(new Blob([a], {type: 'application/pdf'})); } }).printOverview(window.currentFocus, document.getElementById('header-toggle').checked); 
-      };
-      
+      document.getElementById('config-btn').onclick = function() { var panel = document.getElementById('config-panel'); panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none'; };
+      document.getElementById('refresh-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '⏳'; showSidebarToast("Atualizando dados...", "loading"); google.script.run.withSuccessHandler(() => { btn.innerText = orig; showSidebarToast("Atualizado", "success"); }).withFailureHandler((err) => { btn.innerText = orig; showSidebarToast("Falha: " + err.message, "error"); }).updateHoursDashboard("LAST_WEEK"); };
+      document.getElementById('full-sync-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '⏳ AGUARDE...'; google.script.run.withSuccessHandler(function(c) { if(c) { btn.innerText = '⏳ RECONSTRUINDO...'; showSidebarToast("Reconstruindo DATEN...", "loading"); google.script.run.withSuccessHandler(() => { btn.innerText = orig; showSidebarToast("Base limpa e reconstruída!", "success"); }).updateHoursDashboard("FULL_SYNC"); } else { btn.innerText = orig; } }).promptFullSync(); };
+      document.getElementById('open-dash-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '⏳'; var skip = document.getElementById('skip-update-toggle').checked; if (skip) { google.script.run.withSuccessHandler(() => { btn.innerText = orig; }).openDashboardModal(); } else { google.script.run.withSuccessHandler(() => { google.script.run.withSuccessHandler(() => { btn.innerText = orig; }).openDashboardModal(); }).updateHoursDashboard("FOCUSED"); } };
+      document.getElementById('print-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '⏳'; var newTab = window.open('about:blank', '_blank'); if (newTab) newTab.document.write("<h3>Gerando PDF...</h3>"); google.script.run.withSuccessHandler((d) => { btn.innerText = orig; if(d && newTab) { var b = atob(d); var a = new Uint8Array(b.length); for(var i=0; i<b.length; i++) a[i] = b.charCodeAt(i); newTab.location.href = URL.createObjectURL(new Blob([a], {type: 'application/pdf'})); } }).printOverview(window.currentFocus, document.getElementById('header-toggle').checked); };
       document.getElementById('smart-merge-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '✂️'; google.script.run.withSuccessHandler(r => { btn.innerText = orig; if(r && r.startsWith("ERRO")) showSidebarToast(r, "error"); }).toggleSmartMerge(); };
       document.getElementById('reset-block-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '🧹'; google.script.run.withSuccessHandler(r => { btn.innerText = orig; if(r && r.startsWith("ERRO")) showSidebarToast(r, "error"); }).resetBlock(); };
       document.getElementById('show-all-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '...'; window.currentFocus = "ALL"; google.script.run.applySmartLock(true); google.script.run.withSuccessHandler(() => { btn.innerText = orig; }).showAllColumns(); };
@@ -472,28 +507,23 @@
 
       function setupToggleListeners() {
         const mealToggle = document.getElementById('meal-toggle'); const unwindToggle = document.getElementById('unwind-toggle');
-        function handleChange() {
-          showSidebarToast("Salvando preferências...", "loading");
-          google.script.run.withSuccessHandler(() => showSidebarToast("Preferências salvas!", "success")).saveToggleSettings(mealToggle.checked, unwindToggle.checked);
-        }
-        if (mealToggle) mealToggle.addEventListener('change', handleChange);
-        if (unwindToggle) unwindToggle.addEventListener('change', handleChange);
+        function handleChange() { showSidebarToast("Salvando preferências...", "loading"); google.script.run.withSuccessHandler(() => showSidebarToast("Preferências salvas!", "success")).saveToggleSettings(mealToggle.checked, unwindToggle.checked); }
+        if (mealToggle) mealToggle.addEventListener('change', handleChange); if (unwindToggle) unwindToggle.addEventListener('change', handleChange);
       }
 
       function loadToggleMemory() {
         google.script.run.withSuccessHandler(function(s) {
           if (s) {
-            const fontToggle = document.getElementById('font-toggle');
-            if (fontToggle) { fontToggle.checked = s.isColorFont; document.getElementById('font-toggle-label').innerText = s.isColorFont ? "FONTE: COR" : "FONTE: PADRÃO"; }
+            const fontToggle = document.getElementById('font-toggle'); if (fontToggle) { fontToggle.checked = s.isColorFont; document.getElementById('font-toggle-label').innerText = s.isColorFont ? "FONTE: COR" : "FONTE: PADRÃO"; }
             const mealToggle = document.getElementById('meal-toggle'); if (mealToggle && s.isMealSplit !== undefined) mealToggle.checked = s.isMealSplit; 
           }
         }).getSettingsState();
       }
 
       function syncTheme() { google.script.run.withSuccessHandler(t => document.body.classList.toggle('light-mode', t === 'light')).getSidebarTheme(); }
+      
       document.getElementById('font-toggle').onchange = function() {
-        var isColor = this.checked; var label = document.getElementById('font-toggle-label'); 
-        label.innerText = "ATUALIZANDO..."; showSidebarToast("Atualizando fonte...", "loading");
+        var isColor = this.checked; var label = document.getElementById('font-toggle-label'); label.innerText = "ATUALIZANDO..."; showSidebarToast("Atualizando fonte...", "loading");
         google.script.run.withSuccessHandler(() => { label.innerText = isColor ? "FONTE: COR" : "FONTE: PADRÃO"; showSidebarToast("Fonte aplicada!", "success"); }).toggleColorFont(isColor);
       };
 
@@ -501,7 +531,28 @@
         syncTheme(); loadToggleMemory(); setupToggleListeners(); 
         google.script.run.withSuccessHandler(renderButtons).getWeekNames();
         
-        // Carga inicial garante que sysVersion fique sync
+        // 1. CARREGA OS TEMAS SALVOS E RESTAURA ESTADO DO CUSTOMIZER
+        google.script.run.withSuccessHandler(function(savedThemes) {
+          let select = document.getElementById('theme-selector');
+          if (savedThemes && savedThemes.length > 0) {
+            savedThemes.forEach(t => {
+              let opt = document.createElement('option'); opt.value = t.key; opt.text = "⭐ " + t.name.toUpperCase();
+              select.insertBefore(opt, select.lastElementChild); 
+            });
+          }
+          google.script.run.withSuccessHandler(function(data) {
+            if (data) {
+              currentThemeId = data.theme;
+              let options = Array.from(select.options).map(o => o.value);
+              if (!options.includes(currentThemeId)) currentThemeId = "DARK_MODERN"; 
+              select.value = currentThemeId;
+              updateColorPickers(data.ui);
+              if (currentThemeId.startsWith("CUSTOM_")) document.getElementById('ui-customizer').style.display = 'block'; 
+            }
+          }).getCurrentUIState();
+        }).getUserSavedThemes();
+
+        // 2. INICIA A SINCRONIZAÇÃO DA ÁRVORE (SYSTEM BUILDER)
         google.script.run.withSuccessHandler(res => {
           sysVersion = res.newVersion; 
           loadSystemConfigFromDatabase();
@@ -510,6 +561,107 @@
       };
       
       setInterval(syncTheme, 2000);
+      // =========================================================================
+// MOTOR DE TEMAS (THEME ENGINE)
+// Lida com a criação, leitura e gravação de temas customizados
+// =========================================================================
+
+function getSidebarTheme() {
+  return PropertiesService.getDocumentProperties().getProperty('SIDEBAR_THEME') || 'DARK_MODERN';
+}
+
+function setSidebarTheme(theme) {
+  PropertiesService.getDocumentProperties().setProperty('SIDEBAR_THEME', theme);
+  return theme;
+}
+
+function getUserSavedThemes() {
+  let props = PropertiesService.getDocumentProperties();
+  let themes = [];
+  let keys = props.getKeys();
+  
+  // Procura na memória do Google Sheets todos os temas que você criou
+  for (let i = 0; i < keys.length; i++) {
+    if (keys[i].startsWith('CUSTOM_')) {
+      let themeData = JSON.parse(props.getProperty(keys[i]));
+      themes.push({ key: keys[i], name: themeData.name || "Tema Customizado" });
+    }
+  }
+  return themes;
+}
+
+function getCurrentUIState() {
+  let themeId = getSidebarTheme();
+  let ui = getThemeUI(themeId);
+  return { theme: themeId, ui: ui };
+}
+
+function getThemeUI(themeId) {
+  let props = PropertiesService.getDocumentProperties();
+  
+  // Se for um tema seu, devolve as suas cores
+  if (themeId && themeId.startsWith('CUSTOM_')) {
+    let saved = props.getProperty(themeId);
+    if (saved) return JSON.parse(saved).ui;
+  }
+  
+  // Se for tema nativo, devolve os padrões fallback
+  if (themeId === 'LIGHT_MODERN' || themeId === 'LIGHT_CLASSIC') {
+    return { headerBg: '#f8f9fa', headerText: '#000000', timeBg: '#ffffff', timeText: '#000000', patternFill: '#f1f3f5', patternSide: '#dee2e6' };
+  }
+  return { headerBg: '#000000', headerText: '#ffffff', timeBg: '#0a0a0a', timeText: '#e0e0e0', patternFill: '#111111', patternSide: '#262626' };
+}
+
+function applyTheme(themeId) {
+  setSidebarTheme(themeId);
+  let ui = getThemeUI(themeId);
+  return JSON.stringify({ status: "SUCESSO", ui: ui });
+}
+
+function createNewAutoTheme() {
+  let props = PropertiesService.getDocumentProperties();
+  let id = "CUSTOM_" + new Date().getTime(); // Gera um ID único
+  let name = "TEMA " + Math.floor(Math.random() * 1000);
+  
+  // Cores iniciais aleatórias para começar
+  let defaultUi = { 
+    headerBg: '#0D1117', headerText: '#58A6FF', 
+    timeBg: '#161B22', timeText: '#C9D1D9', 
+    patternFill: '#0D1117', patternSide: '#21262D' 
+  };
+  
+  props.setProperty(id, JSON.stringify({ name: name, ui: defaultUi }));
+  setSidebarTheme(id);
+  
+  return { status: "SUCESSO", themeKey: id, themeName: name, ui: defaultUi };
+}
+
+function saveCustomThemeUI(themeId, newUi) {
+  if (!themeId.startsWith('CUSTOM_')) return "ERRO: Temas nativos não podem ser editados.";
+  
+  let props = PropertiesService.getDocumentProperties();
+  let saved = props.getProperty(themeId);
+  let themeData = saved ? JSON.parse(saved) : { name: "TEMA CUSTOMIZADO" };
+  
+  themeData.ui = newUi; // Atualiza com as cores do Color Picker
+  props.setProperty(themeId, JSON.stringify(themeData));
+  
+  return "SUCESSO";
+}
+
+function deleteCustomTheme(themeId) {
+   if (!themeId.startsWith('CUSTOM_')) return { status: "ERRO", message: "Não pode apagar temas do sistema." };
+   
+   PropertiesService.getDocumentProperties().deleteProperty(themeId);
+   let fallback = "DARK_MODERN";
+   setSidebarTheme(fallback);
+   
+   return { status: "SUCESSO", fallbackTheme: fallback };
+}
+
+function previewThemeColors(tempUi) {
+  return "SUCESSO";
+}
     </script>
   </body>
 </html>
