@@ -40,8 +40,7 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
     lazer: "leisure"
   };
 
-  const monthsEng = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-  const daysEng = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const { months, days } = getDateConstants();
 
   // ==========================================
   // 🧠 LEITURA DA PALETA (AGORA COM MODE)
