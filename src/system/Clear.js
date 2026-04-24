@@ -8,20 +8,25 @@ function getActiveThemeColors() {
   // 1. Cores de segurança (Amarelo clássico)
   let colors = { side: '#ffe599', fill: '#fff2cc', text: '#000000' }; 
 
-  // 2. TENTA LER AS CORES REAIS DIRETAMENTE DA PLANILHA (Igual o seu applyUIColorsOnly)
+  // 2. TENTA LER AS CORES REAIS DIRETAMENTE DA PLANILHA (Sincronizado com autoColor)
   if (paletteSheet) {
     const lastRow = paletteSheet.getLastRow();
     if (lastRow >= 1) {
-      const pValues = paletteSheet.getRange(1, 1, lastRow, 17).getValues(); 
+      // Pega os dados da coluna A até a R (18 colunas)
+      const pValues = paletteSheet.getRange(1, 1, lastRow, 18).getValues(); 
+      const hexRegex = /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/i;
+
       for (let i = 0; i < pValues.length; i++) {
-        const nameVal = pValues[i][14] ? pValues[i][14].toString().toLowerCase().trim() : ""; 
+        // Junta a linha inteira para ver se a palavra "pattern" existe em algum lugar
+        const rowStr = pValues[i].join("|").toLowerCase();
         
-        if (nameVal.includes("pattern")) {
-          let valP = pValues[i][15] ? pValues[i][15].toString().trim() : ""; // Coluna P (Side)
-          let valQ = pValues[i][16] ? pValues[i][16].toString().trim() : ""; // Coluna Q (Fill)
+        if (rowStr.includes("pattern")) {
+          // No autoColor, Side está na Coluna A (0) e Fill na Coluna C (2)
+          let valA = String(pValues[i][0]).trim(); // Coluna A
+          let valC = String(pValues[i][2]).trim(); // Coluna C
           
-          if (valP.startsWith("#")) colors.side = valP;
-          if (valQ.startsWith("#")) colors.fill = valQ;
+          if (hexRegex.test(valA)) colors.side = valA;
+          if (hexRegex.test(valC)) colors.fill = valC;
           break; // Achou as cores, pode parar a busca!
         }
       }

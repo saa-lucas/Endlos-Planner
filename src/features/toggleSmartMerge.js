@@ -10,8 +10,7 @@ function toggleSmartMerge() {
     let numRows = activeRange.getNumRows();
     let colStart = activeRange.getColumn();
 
-    // 1. A MATEMÁTICA CORRIGIDA: No seu layout, Main é Par e Side é Ímpar.
-    // Se clicar na Ímpar (Side), a Main é a próxima. Se clicar na Par (Main), a Side é a anterior.
+    // 1. A MATEMÁTICA CORRIGIDA: Main é Par e Side é Ímpar.
     let mainCol = (colStart % 2 === 0) ? colStart : colStart + 1;
     let sideCol = mainCol - 1;
 
@@ -31,7 +30,6 @@ function toggleSmartMerge() {
       numRows = maxR - minR + 1;
     }
 
-    // Refazemos as variáveis com a área real e 100% corrigida
     let finalMain = sheet.getRange(startRow, mainCol, numRows, 1);
     let finalSide = sheet.getRange(startRow, sideCol, numRows, 1);
     
@@ -44,42 +42,74 @@ function toggleSmartMerge() {
     let mainBg = finalMain.getCell(1, 1).getBackground();
     let mainFont = finalMain.getCell(1, 1).getFontColor();
 
-    // 4. Descobre se o bloco já está inteiro (para podermos Dividir na metade)
+    // 4. Descobre se o bloco já está inteiro
     let isFullyMerged = false;
     let checkMerges = finalMain.getMergedRanges();
     if (checkMerges.length === 1 && checkMerges[0].getNumRows() === numRows) {
       isFullyMerged = true;
     }
 
-    // >>> O TRATOR: Estilhaça ABSOLUTAMENTE TUDO (Side e Main) na zona alvo <<<
-    // Destrói qualquer mesclagem torta antes de reconstruir perfeitamente
+    // >>> O TRATOR: Estilhaça ABSOLUTAMENTE TUDO <<<
     fullZone.breakApart();
 
     // 5. Constrói a Side e a Main como Gêmeas Idênticas
     if (isFullyMerged) {
-      // DESCER O DEGRAU (Dividir ao meio)
-      let chunk = Math.floor(numRows / 2);
+      
+      // 🛑 TRAVA DE SEGURANÇA: Se já for 30m (2 linhas) ou menos, recusa a divisão.
+      if (numRows <= 2) {
+        // Reconstrói o bloco que o breakApart desfez logo acima
+        finalSide.mergeVertically().setBackground(sideBg);
+        finalMain.mergeVertically()
+                 .setBackground(mainBg)
+                 .setFontColor(mainFont)
+                 .setHorizontalAlignment("center")
+                 .setVerticalAlignment("middle")
+                 .setFontWeight("bold");
+                 
+        if (mainValue) finalMain.setValue(mainValue);
+        
+        // Dá um aviso sutil na tela do usuário
+        SpreadsheetApp.getActiveSpreadsheet().toast("30m é a unidade mínima. Não é possível dividir mais.", "🛡️ Limite Atingido", 4);
+        return "SUCESSO_MINIMO";
+      }
+
+      // 🧠 DESCER O DEGRAU (Divisão Inteligente baseada no DNA da Planilha)
+      // Gigantes (mais de 1h) viram blocos de 1h (4 linhas).
+      // Blocos de 1h viram blocos de 30m (2 linhas).
+      let chunk = (numRows > 4) ? 4 : 2; 
+
       for (let i = 0; i < numRows; i += chunk) {
         let actualChunk = Math.min(chunk, numRows - i);
         
         let sR = sheet.getRange(startRow + i, sideCol, actualChunk, 1);
         let mR = sheet.getRange(startRow + i, mainCol, actualChunk, 1);
         
-        // Aplica as mesclagens nos novos pedaços
+        // Aplica as mesclagens nos novos pedaços (só se for maior que 1 linha)
         if (actualChunk > 1) {
           sR.mergeVertically();
           mR.mergeVertically();
         }
         
-        // Pinta instantaneamente a Side e a Main clonando o visual
+        // Pinta instantaneamente
         sR.setBackground(sideBg);
-        mR.setBackground(mainBg).setFontColor(mainFont).setHorizontalAlignment("center").setVerticalAlignment("middle").setFontWeight("bold");
+        mR.setBackground(mainBg)
+          .setFontColor(mainFont)
+          .setHorizontalAlignment("center")
+          .setVerticalAlignment("middle")
+          .setFontWeight("bold");
+          
         if (mainValue) mR.setValue(mainValue);
       }
     } else {
       // SUBIR O DEGRAU (Fundir tudo num bloco só)
       finalSide.mergeVertically().setBackground(sideBg);
-      finalMain.mergeVertically().setBackground(mainBg).setFontColor(mainFont).setHorizontalAlignment("center").setVerticalAlignment("middle").setFontWeight("bold");
+      finalMain.mergeVertically()
+               .setBackground(mainBg)
+               .setFontColor(mainFont)
+               .setHorizontalAlignment("center")
+               .setVerticalAlignment("middle")
+               .setFontWeight("bold");
+               
       if (mainValue) finalMain.setValue(mainValue);
     }
 
