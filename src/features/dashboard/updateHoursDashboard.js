@@ -40,7 +40,8 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
     lazer: "leisure"
   };
 
-  const { months, days } = getDateConstants();
+  const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+  const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
   // ==========================================
   // 🧠 LEITURA DA PALETA (AGORA COM MODE)
@@ -340,9 +341,9 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
 
         year = "'" + rawDateObj.getFullYear();
         mNum = "'" + (rawDateObj.getMonth() + 1).toString().padStart(2, '0');
-        mAbbr = monthsEng[rawDateObj.getMonth()];
+        mAbbr = months[rawDateObj.getMonth()];
         dNum = "'" + rawDateObj.getDate().toString().padStart(2, '0');
-        dAbbr = daysEng[rawDateObj.getDay()];
+        dAbbr = days[rawDateObj.getDay()];
         fDate = dNum.replace("'","") + "/" + mNum.replace("'","") + "/" + year.replace("'","");
 
         let tdt = new Date(rawDateObj.valueOf());
@@ -351,8 +352,8 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
         monD.setDate(monD.getDate() - dayn); 
         let sunD = new Date(monD.valueOf()); 
         sunD.setDate(sunD.getDate() + 6); 
-        let monStr = monthsEng[monD.getMonth()] + String(monD.getDate()).padStart(2, '0');
-        let sunStr = monthsEng[sunD.getMonth()] + String(sunD.getDate()).padStart(2, '0');
+        let monStr = months[monD.getMonth()] + String(monD.getDate()).padStart(2, '0');
+        let sunStr = months[sunD.getMonth()] + String(sunD.getDate()).padStart(2, '0');
         wNum = "'" + monStr + "/" + sunStr;
       }
 
@@ -444,12 +445,12 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
       let sunD = new Date(monD.valueOf()); 
       sunD.setDate(sunD.getDate() + 6);
       
-      let monStr = monthsEng[monD.getMonth()] + String(monD.getDate()).padStart(2, '0');
-      let sunStr = monthsEng[sunD.getMonth()] + String(sunD.getDate()).padStart(2, '0');
+      let monStr = months[monD.getMonth()] + String(monD.getDate()).padStart(2, '0');
+      let sunStr = months[sunD.getMonth()] + String(sunD.getDate()).padStart(2, '0');
       let wN = "'" + monStr + "/" + sunStr;
 
       // SLEEP CARIMBADO COMO "RECUPERAÇÃO" NA COLUNA 3
-      finalTimeline.push([SYS.sleepOutAction, SYS.sleepOutContext, SYS.sleepMode, y, mN, monthsEng[d.getMonth()], dN, daysEng[d.getDay()], wN, fD, "'" + lastSaaEnd.eTime, "'" + curr.sTime, sH, 1]);
+      finalTimeline.push([SYS.sleepOutAction, SYS.sleepOutContext, SYS.sleepMode, y, mN, months[d.getMonth()], dN, days[d.getDay()], wN, fD, "'" + lastSaaEnd.eTime, "'" + curr.sTime, sH, 1]);
       lastSaaEnd = null;
     }
     
