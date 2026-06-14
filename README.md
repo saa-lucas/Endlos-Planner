@@ -13,10 +13,11 @@ It acts as a relentless supervisor of your time, quantifying focus, leisure, phy
 The system provides multiple interactive views to slice the data by context, daily patterns, and biological metrics:
 
 <div align="center">
-  <img src="assets/dashboard-charts-3.png" alt="Weekly Load & Productivity" width="49%">
-  <img src="assets/dashboard-patterns.png" alt="Behavioral Patterns & Top Distractions" width="49%">
-  <img src="assets/dashboard-health.png" alt="Health Metrics & Decompression vs Sleep" width="49%">
-  <img src="assets/dashboard-diagnostics.png" alt="System Diagnostics & Verdict" width="49%">
+  <img src="assets/dashboard-charts-3.png" alt="Weekly Load" width="49%">
+  <img src="assets/dashboard-patterns.png" alt="Patterns" width="49%">
+  <br>
+  <img src="assets/dashboard-health.png" alt="Health" width="49%">
+  <img src="assets/dashboard-diagnostics.png" alt="Diagnostics" width="49%">
 </div>
 
 ---
