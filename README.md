@@ -5,7 +5,18 @@ The **Endlos Planner** is a routine monitoring and diagnostic system designed to
 It acts as a relentless supervisor of your time, quantifying focus, leisure, physical/mental health, and distractions to generate an executive daily performance report.
 
 <div align="center">
-  <img src="assets/dashboard-charts-3.png" alt="Endlos Planner Analytical Dashboard" width="800">
+  <img src="assets/dashboard-overview.jpg" alt="Endlos Planner General Overview" width="800">
+</div>
+
+### 📈 Analytical Capabilities Showcase
+
+The system provides multiple interactive views to slice the data by context, daily patterns, and biological metrics:
+
+<div align="center">
+  <img src="assets/dashboard-charts-3.png" alt="Weekly Load & Productivity" width="49%">
+  <img src="assets/dashboard-patterns.png" alt="Behavioral Patterns & Top Distractions" width="49%">
+  <img src="assets/dashboard-health.png" alt="Health Metrics & Decompression vs Sleep" width="49%">
+  <img src="assets/dashboard-diagnostics.png" alt="System Diagnostics & Verdict" width="49%">
 </div>
 
 ---
