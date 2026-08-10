@@ -71,10 +71,20 @@ function triggerSafeGlobalRepaint() {
 
   cache.put('LAST_REPAINT_TIME', now.toString(), 15);
   PropertiesService.getDocumentProperties().setProperty('SYS_VERSION', now.toString());
-  SpreadsheetApp.flush();
+  
+  // Força o Google Sheets a terminar de calcular qualquer Hexadecimal novo
+  SpreadsheetApp.flush(); 
   
   try {
-    applyFillFromOutlookColorsOptimized();
+    // 1️⃣ PRIMEIRO: Pinta a Paleta (P e Q) com base nos novos cálculos
+    if (typeof applyOutlookColorsOptimized === 'function') {
+      applyOutlookColorsOptimized();
+    }
+    
+    // 2️⃣ SEGUNDO: Pinta o Calendário lendo as cores novas que a paleta acabou de gerar
+    if (typeof applyFillFromOutlookColorsOptimized === 'function') {
+      applyFillFromOutlookColorsOptimized();
+    }
   } catch (err) {
     console.error("Erro no Global Repaint: " + err);
   }

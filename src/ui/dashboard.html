@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <base target="_top">
+  <!-- FONT AWESOME: Ícones minimalistas -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
   <style>
@@ -59,7 +61,7 @@
     select { background-color: var(--bg-btn); color: var(--text-primary); border: 1px solid var(--border); padding: 10px 14px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 12px; outline: none; cursor: pointer; transition: 0.2s; }
     select:hover { border-color: var(--accent); }
 
-    .btn-tool { background-color: var(--bg-btn); color: var(--text-secondary); border: 1px solid var(--border); padding: 10px 14px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none; }
+    .btn-tool { background-color: var(--bg-btn); color: var(--text-secondary); border: 1px solid var(--border); padding: 10px 14px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none; display: flex; align-items: center; gap: 8px; }
     .btn-tool:hover { background-color: var(--bg-main); color: var(--text-primary); border-color: var(--text-secondary); }
     .btn-primary { background-color: var(--accent); color: #fff; border: 1px solid var(--accent); }
     .btn-primary:hover { background-color: transparent; color: var(--accent); }
@@ -83,7 +85,7 @@
     .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: background 0.3s; }
     .kpi-title { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
     .kpi-title span { cursor: help; opacity: 0.6; transition: 0.2s; font-size: 12px; margin-left: 4px; }
-    .kpi-title span:hover { opacity: 1; }
+    .kpi-title span:hover { opacity: 1; color: var(--accent); }
     .kpi-value { font-size: 24px; color: var(--text-primary); font-weight: 700; font-family: 'Courier New', monospace; }
     .kpi-unit { font-size: 14px; color: var(--text-secondary); font-weight: 400; }
     .kpi-card.danger { border-color: #ff3366; }
@@ -94,18 +96,19 @@
     .chart-card.wide { grid-column: span 2; height: 380px; }
     .chart-card.extra-wide { grid-column: span 2; height: 500px; }
     .chart-card.auto-height { height: auto; min-height: 200px; }
-    h3 { margin-top: 0; font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; border-bottom: 1px dashed var(--border); padding-bottom: 8px; flex-shrink: 0; }
+    h3 { margin-top: 0; font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; border-bottom: 1px dashed var(--border); padding-bottom: 8px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
     
     .canvas-container { position: relative; flex-grow: 1; min-height: 0; width: 100%; }
     .scroll-wrapper { overflow-y: auto; overflow-x: hidden; flex-grow: 1; padding-right: 5px; }
     .scroll-inner { position: relative; width: 100%; }
     
-    .chart-insight { font-size: 12px; color: var(--text-secondary); margin-top: 14px; font-style: italic; border-top: 1px dashed var(--border); padding-top: 10px; line-height: 1.4; }
+    .chart-insight { font-size: 12px; color: var(--text-secondary); margin-top: 14px; font-style: italic; border-top: 1px dashed var(--border); padding-top: 10px; line-height: 1.4; display: flex; gap: 6px; align-items: flex-start; }
     .chart-insight b { color: var(--text-primary); font-weight: bold; font-style: normal; }
     .chart-insight.critical b { color: #ff3366; }
     .chart-insight.critical { color: #cc4455; }
 
-    .loading { text-align: center; color: var(--text-secondary); font-family: monospace; margin-top: 50px; font-size: 16px; }
+    .loading { text-align: center; color: var(--text-secondary); font-family: monospace; margin-top: 50px; font-size: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .loading i { font-size: 24px; color: var(--accent); }
     ::-webkit-scrollbar { width: 6px; } 
     ::-webkit-scrollbar-track { background: var(--bg-main); } 
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; } 
@@ -114,15 +117,16 @@
     .score-block { background: var(--bg-main); padding: 16px; border-radius: 8px; border: 1px solid var(--border); min-width: 220px; text-align: left; display: flex; flex-direction: column; gap: 6px; }
     .score-title { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; display: flex; justify-content: space-between; font-weight: bold; letter-spacing: 1px; }
     .score-title span { cursor: help; opacity: 0.6; transition: 0.2s; font-size: 14px; }
-    .score-title span:hover { opacity: 1; }
+    .score-title span:hover { opacity: 1; color: var(--accent); }
     .score-value-row { display: flex; align-items: baseline; gap: 6px; margin: 4px 0; }
     .score-max { font-size: 16px; color: var(--text-secondary); font-family: 'Courier New', monospace; font-weight: normal; }
     .score-label { font-size: 12px; font-weight: bold; }
     .score-impact { font-size: 11px; color: var(--text-secondary); font-style: italic; line-height: 1.4; border-top: 1px dashed var(--border); padding-top: 6px; margin-top: 2px; }
 
     .exec-report-section { margin-bottom: 16px; }
-    .exec-report-section strong { color: var(--text-primary); font-size: 14px; display: block; margin-bottom: 6px; }
+    .exec-report-section strong { color: var(--text-primary); font-size: 14px; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
     .exec-report-action-box { margin-top: 20px; padding: 16px; background: var(--bg-btn); border-radius: 8px; border-left: 4px solid var(--accent); }
+    .exec-report-action-box strong { display: flex; align-items: center; gap: 6px; }
     .exec-report-action-box ul { margin: 8px 0 0 0; padding-left: 20px; color: var(--text-primary); font-family: 'Segoe UI', sans-serif; font-size: 14px; }
     .exec-report-action-box li { margin-bottom: 8px; }
     .exec-report-action-box li strong { display: inline; color: var(--accent); }
@@ -177,7 +181,7 @@
       body { padding: 16px; }
       .header { flex-direction: column; align-items: flex-start; gap: 16px; }
       .filters { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-      .filters select, .filters button { width: 100%; margin: 0; }
+      .filters select, .filters button { width: 100%; margin: 0; justify-content: center;}
       #btn-toggle-advanced, #btn-present, #btn-theme-toggle, #btn-stats { grid-column: span 2; }
       #btn-wrapped { grid-column: span 2; }
       
@@ -198,6 +202,8 @@
       .wrapped-value { font-size: 24vw; }
       .wrapped-desc { font-size: 16px; }
     }
+
+    .dash-footer { font-size: 10px; color: var(--text-secondary); margin-top: 40px; text-align: center; border-top: 1px dashed var(--border); padding-top: 16px; padding-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -210,14 +216,15 @@
       <select id="filter-week"><option value="ALL">SEMANA: TODAS</option></select>
       <select id="filter-day"><option value="ALL">DIA: TODOS</option></select>
       
-      <button id="btn-wrapped" class="btn-tool btn-wrapped" onclick="startWrapped()">🎬 MEU WRAPPED</button>
-      <button id="btn-stats" class="btn-tool" onclick="toggleStats()">📈 ESTATÍSTICOS</button>
-      <button id="btn-theme-toggle" class="btn-tool" onclick="toggleThemeManual()">🌗 TEMA</button>
-      <button id="btn-toggle-advanced" class="btn-tool btn-primary" onclick="toggleAdvanced()">📊 MODO AVANÇADO</button>
+      <button id="btn-wrapped" class="btn-tool btn-wrapped" onclick="startWrapped()"><i class="fa-solid fa-clapperboard"></i> MEU WRAPPED</button>
+      <button id="btn-stats" class="btn-tool" onclick="toggleStats()"><i class="fa-solid fa-chart-line"></i> ESTATÍSTICOS</button>
+      <button id="btn-theme-toggle" class="btn-tool" onclick="toggleThemeManual()"><i class="fa-solid fa-circle-half-stroke"></i> TEMA</button>
+      <button id="btn-toggle-advanced" class="btn-tool btn-primary" onclick="toggleAdvanced()"><i class="fa-solid fa-chart-column"></i> MODO AVANÇADO</button>
+      <button id="btn-present" class="btn-tool" onclick="togglePresentMode()"><i class="fa-solid fa-expand"></i> TELA CHEIA</button>
     </div>
   </div>
 
-  <div id="loading-msg" class="loading">⏳ Processando os seus logs...</div>
+  <div id="loading-msg" class="loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Processando os seus logs...</div>
 
   <div id="dashboard-content" style="display:none;">
     
@@ -225,12 +232,12 @@
       <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px dashed var(--border); padding-bottom: 16px; margin-bottom: 16px; flex-wrap: wrap; gap: 20px;">
         <div style="flex: 1; min-width: 250px;">
           <div style="font-size: 11px; color: var(--text-secondary); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;">Veredito do Sistema</div>
-          <div id="diag-status" style="font-size: 22px; font-weight: bold; color: var(--text-primary); line-height: 1.3;">Analisando Padrões...</div>
-          <div id="diag-main-action">Calculando próximo passo...</div>
+          <div id="diag-status" style="font-size: 22px; font-weight: bold; color: var(--text-primary); line-height: 1.3;"><i class="fa-solid fa-microchip"></i> Analisando Padrões...</div>
+          <div id="diag-main-action"><i class="fa-solid fa-arrow-right"></i> Calculando próximo passo...</div>
         </div>
         <div style="display: flex; gap: 16px; flex-wrap: wrap; flex: 2;">
           <div class="score-block">
-            <div class="score-title">Performance (Log) <span title="Qualidade da sua execução calculada estritamente sobre o tempo que você documentou.">ℹ️</span></div>
+            <div class="score-title">Performance (Log) <span title="Qualidade da sua execução calculada estritamente sobre o tempo que você documentou."><i class="fa-solid fa-circle-info"></i></span></div>
             <div class="score-value-row">
               <div id="diag-score" style="font-size: 36px; font-weight: bold; color: var(--accent); font-family: 'Courier New', monospace;">0</div>
               <div class="score-max">/ 100</div>
@@ -239,7 +246,7 @@
             <div id="diag-score-impact" class="score-impact">Lendo impacto na rotina...</div>
           </div>
           <div class="score-block">
-            <div class="score-title">Base Biológica <span title="Capacidade do seu corpo sustentar a carga mental. Baseado em Sono, Saúde Física e Mental.">ℹ️</span></div>
+            <div class="score-title">Base Biológica <span title="Capacidade do seu corpo sustentar a carga mental. Baseado em Sono, Saúde Física e Mental."><i class="fa-solid fa-circle-info"></i></span></div>
             <div class="score-value-row">
               <div id="diag-health" style="font-size: 36px; font-weight: bold; color: #00ffaa; font-family: 'Courier New', monospace;">0</div>
               <div class="score-max">/ 100</div>
@@ -250,7 +257,7 @@
         </div>
       </div>
       <div id="diagnostic-text" style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; font-family: 'Courier New', monospace;">
-        Carregando...
+        <i class="fa-solid fa-circle-notch fa-spin"></i> Carregando...
       </div>
     </div>
 
@@ -258,7 +265,7 @@
       <div class="kpi-grid">
         <div class="kpi-card"><div class="kpi-title">Horas Totais</div><div class="kpi-value" id="kpi-total">0<span class="kpi-unit">h</span></div></div>
         <div class="kpi-card">
-          <div class="kpi-title">Cobertura <span title="Tempo com registro / período monitorado">ℹ️</span></div>
+          <div class="kpi-title">Cobertura <span title="Tempo com registro / período monitorado"><i class="fa-solid fa-circle-info"></i></span></div>
           <div class="kpi-value" id="kpi-coverage" style="color: #ffffff;">0<span class="kpi-unit">%</span></div>
         </div>
         <div class="kpi-card"><div class="kpi-title">Trabalho Focado</div><div class="kpi-value" id="kpi-work" style="color: #0088ff;">0<span class="kpi-unit">h</span></div></div>
@@ -269,13 +276,13 @@
 
       <div class="charts-grid">
         <div class="chart-card">
-          <h3>Tempo por Contexto (Visão Global)</h3>
+          <h3><i class="fa-solid fa-globe"></i> Tempo por Contexto (Visão Global)</h3>
           <div class="canvas-container"><canvas id="contextChart"></canvas></div>
           <div id="insight-context" class="chart-insight"></div>
         </div>
         
         <div class="chart-card">
-          <h3>Visão Geral de Ações (Apenas Documentado)</h3>
+          <h3><i class="fa-solid fa-list-check"></i> Visão Geral de Ações (Apenas Documentado)</h3>
           <div class="scroll-wrapper">
             <div class="scroll-inner" id="action-scroll-area">
               <canvas id="actionChart"></canvas>
@@ -285,39 +292,39 @@
         </div>
 
         <div class="chart-card auto-height">
-          <h3 id="gap-card-title">⏳ Top Distrações (Sabotagem Declarada)</h3>
+          <h3 id="gap-card-title"><i class="fa-solid fa-stopwatch"></i> Top Distrações (Sabotagem Declarada)</h3>
           <div id="gap-list" style="flex-grow:1;">
-            <div class="gap-empty">Calculando...</div>
+            <div class="gap-empty"><i class="fa-solid fa-circle-notch fa-spin"></i> Calculando...</div>
           </div>
           <div id="insight-gaps" class="chart-insight"></div>
         </div>
         
         <div class="chart-card">
-          <h3>Padrão Diário: Foco, Distração e Não Registrado</h3>
+          <h3><i class="fa-solid fa-calendar-day"></i> Padrão Diário: Foco, Distração e Não Registrado</h3>
           <div class="canvas-container"><canvas id="focusWastedDayChart"></canvas></div>
           <div id="insight-focusWasted" class="chart-insight"></div>
         </div>
 
         <div class="chart-card">
-          <h3>Refeições: Frequência e Duração</h3>
+          <h3><i class="fa-solid fa-utensils"></i> Refeições: Frequência e Duração</h3>
           <div class="canvas-container"><canvas id="mealChart"></canvas></div>
           <div id="insight-meal" class="chart-insight"></div>
         </div>
 
         <div class="chart-card">
-          <h3>Distribuição de Saúde</h3>
+          <h3><i class="fa-solid fa-heart-pulse"></i> Distribuição de Saúde</h3>
           <div class="canvas-container"><canvas id="healthChart"></canvas></div>
           <div id="insight-health" class="chart-insight"></div>
         </div>
 
         <div class="chart-card">
-          <h3>Impacto: Descompressão vs Sono</h3>
+          <h3><i class="fa-solid fa-moon"></i> Impacto: Descompressão vs Sono</h3>
           <div class="canvas-container"><canvas id="sleepUnwindChart"></canvas></div>
           <div id="insight-sleepUnwind" class="chart-insight"></div>
         </div>
 
         <div class="chart-card extra-wide">
-          <h3>Comparativo Semanal: Composição do Tempo</h3>
+          <h3><i class="fa-solid fa-timeline"></i> Comparativo Semanal: Composição do Tempo</h3>
           <div class="canvas-container"><canvas id="weeklyCompareChart"></canvas></div>
           <div id="insight-weekly" class="chart-insight"></div>
         </div>
@@ -326,15 +333,22 @@
     
     <div id="stats-section" style="display:none; margin-top:20px;">
       <div class="chart-card auto-height">
-        <h3>📊 Estatísticas Gerais</h3>
+        <h3><i class="fa-solid fa-chart-pie"></i> Estatísticas Gerais</h3>
         <div id="stats-content" style="font-family: 'Courier New', monospace; font-size:13px; line-height:1.6;"></div>
       </div>
     </div>
-  </div>
+    
+    <div class="dash-footer">
+      <span style="font-family: 'Courier New', monospace; opacity: 0.4; letter-spacing: 2px;">
+        ⌘ saa-lucas
+      </span>
+    </div>
 
-  <div id="wrapped-overlay">
+  </div> <!-- Fim do dashboard-content -->
+
+  <div id="wrapped-overlay">  
     <div class="wrapped-progress-container" id="wrapped-bars"></div>
-    <button class="wrapped-close" onclick="closeWrapped()">✕</button>
+    <button class="wrapped-close" onclick="closeWrapped()"><i class="fa-solid fa-xmark"></i></button>
     <div class="wrapped-nav left" onclick="prevWrappedSlide()"></div>
     <div class="wrapped-nav right" onclick="nextWrappedSlide()"></div>
     
@@ -493,7 +507,7 @@
         title: "Nota de Performance",
         value: scores.performance + "/100",
         colorClass: scores.performance >= 80 ? "success" : (scores.performance >= 60 ? "warning" : "danger"),
-        desc: `${verdict}.<br><br>Feche o Wrapped e encare o relatório no painel.`,
+        desc: `${verdict.replace(/<[^>]*>?/gm, '')}.<br><br>Feche o Wrapped e encare o relatório no painel.`, // Remove tags HTML para o wrapped
         bgColor: "#111111"
       });
 
@@ -600,12 +614,25 @@
       const btn = document.getElementById('btn-toggle-advanced');
       if (el.style.display === 'none') {
         el.style.display = 'block';
-        btn.innerText = "📉 MODO SIMPLES";
+        btn.innerHTML = '<i class="fa-solid fa-chart-simple"></i> MODO SIMPLES';
       } else {
         el.style.display = 'none';
-        btn.innerText = "📊 MODO AVANÇADO";
+        btn.innerHTML = '<i class="fa-solid fa-chart-column"></i> MODO AVANÇADO';
       }
       setTimeout(() => { Object.values(charts).forEach(chart => chart.resize()); }, 50);
+    }
+    
+    function togglePresentMode() {
+      const isPresenting = document.body.classList.toggle('present-mode');
+      const btn = document.getElementById('btn-present');
+      btn.innerHTML = isPresenting ? '<i class="fa-solid fa-compress"></i> SAIR' : '<i class="fa-solid fa-expand"></i> TELA CHEIA';
+      const canvases = document.querySelectorAll('canvas');
+      canvases.forEach(c => c.style.display = 'none');
+      setTimeout(() => {
+        canvases.forEach(c => c.style.display = 'block');
+        window.dispatchEvent(new Event('resize'));
+        Object.values(charts).forEach(chart => chart.resize());
+      }, 50); 
     }
 
     function generateScores(m) {
@@ -629,10 +656,10 @@
     }
 
     function getPerfVerdict(score) {
-      if (score >= 85) return "🟢 Alta Execução";
-      if (score >= 70) return "🟡 Consistente";
-      if (score >= 50) return "🟠 Desperdício Elevado";
-      return "🔴 Foco Comprometido";
+      if (score >= 85) return "Alta Execução";
+      if (score >= 70) return "Consistente";
+      if (score >= 50) return "Desperdício Elevado";
+      return "Foco Comprometido";
     }
     function getPerfImpact(score) {
       if (score >= 85) return "Ação alinhada com os seus objetivos (dentro do que foi mapeado).";
@@ -641,10 +668,10 @@
       return "O seu tempo documentado está a ser engolido por distrações.";
     }
     function getHealthVerdict(score) {
-      if (score >= 85) return "🟢 Motor Otimizado";
-      if (score >= 70) return "🟡 Base Estável";
-      if (score >= 50) return "🟠 Risco de Fadiga";
-      return "🔴 Base Colapsada";
+      if (score >= 85) return "Motor Otimizado";
+      if (score >= 70) return "Base Estável";
+      if (score >= 50) return "Risco de Fadiga";
+      return "Base Colapsada";
     }
     function getHealthImpact(score) {
       if (score >= 85) return "Energia alta para sustentar carga mental.";
@@ -653,27 +680,27 @@
       return "Risco alto de burnout ou quebra cognitiva iminente.";
     }
     function getSystemVerdict(perf, health, coverage, wasted, work) {
-      if (coverage < 50) return "🌫️ BAIXA CONFIABILIDADE DOS DADOS";
-      if (wasted > work) return "🚨 ALERTA: AUTOSSABOTAGEM DETETADA";
-      if (perf >= 80 && health >= 80) return "🚀 PADRÃO DE ELITE VALIDADO";
-      if (perf >= 80 && health < 60) return "⚠️ ALTA EXECUÇÃO, MAS RISCO DE QUEBRA";
-      if (perf < 60 && health >= 80) return "🌱 BOA ENERGIA, MAS FALTA DIREÇÃO (FUGA)";
-      return "⚖️ SISTEMA EM EQUILÍBRIO INSTÁVEL";
+      if (coverage < 50) return "<i class='fa-solid fa-eye-slash'></i> BAIXA CONFIABILIDADE DOS DADOS";
+      if (wasted > work) return "<i class='fa-solid fa-triangle-exclamation'></i> ALERTA: AUTOSSABOTAGEM DETETADA";
+      if (perf >= 80 && health >= 80) return "<i class='fa-solid fa-rocket'></i> PADRÃO DE ELITE VALIDADO";
+      if (perf >= 80 && health < 60) return "<i class='fa-solid fa-bolt'></i> ALTA EXECUÇÃO, MAS RISCO DE QUEBRA";
+      if (perf < 60 && health >= 80) return "<i class='fa-solid fa-seedling'></i> BOA ENERGIA, MAS FALTA DIREÇÃO (FUGA)";
+      return "<i class='fa-solid fa-scale-balanced'></i> SISTEMA EM EQUILÍBRIO INSTÁVEL";
     }
 
     function getMainAction(m, scores) {
-      if (m.coverage < 50) return "→ Preencha o seu dia. Você não enxerga o suficiente para tomar decisões.";
-      if (m.wastedH > m.workH) return "→ Corte brutal de distrações reais amanhã. Esse é o gargalo visível.";
-      if (scores.health < 60) return "→ Corrija sono e energia antes de tentar performar.";
-      if (scores.performance < 70) return "→ Reduzir distração declarada é o maior ganho imediato.";
-      if (scores.performance >= 80 && scores.health >= 80) return "→ Sistema sólido. Aumente a carga de trabalho.";
-      return "→ Mantenha consistência. O padrão está se formando.";
+      if (m.coverage < 50) return "<i class='fa-solid fa-arrow-right'></i> Preencha o seu dia. Você não enxerga o suficiente para tomar decisões.";
+      if (m.wastedH > m.workH) return "<i class='fa-solid fa-arrow-right'></i> Corte brutal de distrações reais amanhã. Esse é o gargalo visível.";
+      if (scores.health < 60) return "<i class='fa-solid fa-arrow-right'></i> Corrija sono e energia antes de tentar performar.";
+      if (scores.performance < 70) return "<i class='fa-solid fa-arrow-right'></i> Reduzir distração declarada é o maior ganho imediato.";
+      if (scores.performance >= 80 && scores.health >= 80) return "<i class='fa-solid fa-arrow-right'></i> Sistema sólido. Aumente a carga de trabalho.";
+      return "<i class='fa-solid fa-arrow-right'></i> Mantenha consistência. O padrão está se formando.";
     }
 
     function buildSmartInsights(m, scores) {
       let html = "";
       
-      html += `<div class="exec-report-section"><strong>📍 Realidade Bidimensional:</strong>`;
+      html += `<div class="exec-report-section"><strong><i class="fa-solid fa-location-dot"></i> Realidade Bidimensional:</strong>`;
       if (m.coverage < 60) {
         html += `Você performou a ${scores.performance}/100, mas a sua cobertura de dados é de apenas ${m.coverage.toFixed(0)}%. Você voa às cegas em boa parte do tempo. A prioridade não é performance, é documentar.`;
       } else {
@@ -681,7 +708,7 @@
       }
       html += `</div>`;
 
-      html += `<div class="exec-report-section"><strong>🔋 Base Energética:</strong>`;
+      html += `<div class="exec-report-section"><strong><i class="fa-solid fa-battery-half"></i> Base Energética:</strong>`;
       if (scores.health < 60) {
         html += `O seu corpo não sustenta a ambição. Com ${m.sleepMed.toFixed(1)}h de sono e pouca ativação, falta combustível biológico real.`;
       } else if (scores.health < 80) {
@@ -691,7 +718,7 @@
       }
       html += `</div>`;
 
-      html += `<div class="exec-report-action-box"><strong>🎯 O que você precisa fazer agora:</strong><ul>`;
+      html += `<div class="exec-report-action-box"><strong><i class="fa-solid fa-bullseye"></i> O que você precisa fazer agora:</strong><ul>`;
       if (m.coverage < 60) {
         html += `<li><strong>Aumente a Observação:</strong> O seu foco principal amanhã é preencher o planner e eliminar a área de "Não Registrado".</li>`;
       } else if (m.wastedH > m.workH) {
@@ -716,10 +743,10 @@
       ).sort((a, b) => actData[b] - actData[a]);
 
       if (wastedActions.length > 0) {
-        titleEl.textContent = '🚨 Top Distrações (Sabotagem Declarada)';
+        titleEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#ff3366;"></i> Top Distrações (Sabotagem Declarada)';
         const top = wastedActions.slice(0, 5);
         const maxH = actData[top[0]];
-        const medals = ['🥇', '🥈', '🥉', '4º', '5º'];
+        const medals = ['1º', '2º', '3º', '4º', '5º'];
 
         container.innerHTML = top.map((a, i) => {
           const pct = maxH > 0 ? (actData[a] / maxH) * 100 : 0;
@@ -733,15 +760,15 @@
         }).join('');
 
         insightEl.className = 'chart-insight critical';
-        insightEl.innerHTML = `💡 <b>"${wastedActions[0]}" é o seu principal ladrão de tempo CONSCIENTE: ${actData[wastedActions[0]].toFixed(1)}h.</b>`;
+        insightEl.innerHTML = `<i class="fa-solid fa-lightbulb" style="color:#ff3366;"></i> <b>"${wastedActions[0]}" é o seu principal ladrão de tempo CONSCIENTE: ${actData[wastedActions[0]].toFixed(1)}h.</b>`;
         return;
       }
 
       if (wastedH > 0) {
-        titleEl.textContent = '⏳ Distração (sem categoria)';
+        titleEl.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Distração (sem categoria)';
         container.innerHTML = `
           <div class="gap-item">
-            <span class="gap-rank">⚠️</span>
+            <span class="gap-rank"><i class="fa-solid fa-triangle-exclamation"></i></span>
             <span class="gap-label">
               Distração registrada
               <span class="gap-sublabel">Contexto declarado, ação não especificada</span>
@@ -750,17 +777,17 @@
             <span class="gap-hours">${wastedH.toFixed(1)}h</span>
           </div>`;
         insightEl.className = 'chart-insight critical';
-        insightEl.innerHTML = `💡 <b>${wastedH.toFixed(1)}h classificadas como Distração Genérica</b> — mas sem causa exata registrada.`;
+        insightEl.innerHTML = `<i class="fa-solid fa-lightbulb" style="color:#ff3366;"></i> <b>${wastedH.toFixed(1)}h classificadas como Distração Genérica</b> — mas sem causa exata registrada.`;
         return;
       }
 
-      titleEl.textContent = '⏳ Buracos de Tempo';
+      titleEl.innerHTML = '<i class="fa-solid fa-stopwatch"></i> Buracos de Tempo';
       container.innerHTML = `
         <div class="gap-empty">
           Nenhuma Distração Real declarada neste período.<br><br>
         </div>`;
       insightEl.className = 'chart-insight';
-      insightEl.innerHTML = `💡 A sua performance de foco dentro do que foi observado está blindada.`;
+      insightEl.innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> A sua performance de foco dentro do que foi observado está blindada.`;
     }
 
     Chart.register(ChartDataLabels);
@@ -771,20 +798,20 @@
     google.script.run
       .withSuccessHandler(initDashboard)
       .withFailureHandler(function(err) {
-        document.getElementById('loading-msg').innerHTML = `<span style="color:#ff3366; font-weight:bold;">🚨 Erro no Sistema: ${err.message}</span>`;
+        document.getElementById('loading-msg').innerHTML = `<span style="color:#ff3366; font-weight:bold;"><i class="fa-solid fa-triangle-exclamation"></i> Erro no Sistema: ${err.message}</span>`;
       })
       .getDashboardDataJson();
 
     function initDashboard(response) {
       document.getElementById('loading-msg').style.display = 'none';
       if (response.error) { 
-        document.getElementById('loading-msg').innerHTML = `<span style="color:#ff3366;">Erro no Servidor: ${response.error}</span>`; 
-        document.getElementById('loading-msg').style.display = 'block'; 
+        document.getElementById('loading-msg').innerHTML = `<span style="color:#ff3366;"><i class="fa-solid fa-triangle-exclamation"></i> Erro no Servidor: ${response.error}</span>`; 
+        document.getElementById('loading-msg').style.display = 'flex'; 
         return; 
       }
       if (!response || !response.timeline || response.timeline.length === 0) { 
-        document.getElementById('loading-msg').innerText = "Nenhum dado encontrado na aba 'Daten'."; 
-        document.getElementById('loading-msg').style.display = 'block'; 
+        document.getElementById('loading-msg').innerHTML = "<i class='fa-solid fa-database'></i> Nenhum dado encontrado na aba 'Daten'."; 
+        document.getElementById('loading-msg').style.display = 'flex'; 
         return; 
       }
 
@@ -994,10 +1021,10 @@
 
       const scores = generateScores(currentMetrics);
       
-      document.getElementById('diag-status').innerText = getSystemVerdict(scores.performance, scores.health, coveragePct, currentMetrics.wastedH, currentMetrics.workH);
+      document.getElementById('diag-status').innerHTML = getSystemVerdict(scores.performance, scores.health, coveragePct, currentMetrics.wastedH, currentMetrics.workH);
       
       const actionEl = document.getElementById('diag-main-action');
-      actionEl.innerText = getMainAction(currentMetrics, scores);
+      actionEl.innerHTML = getMainAction(currentMetrics, scores);
       if (coveragePct < 50 || currentMetrics.wastedH > currentMetrics.workH || scores.health < 60) {
         actionEl.style.borderLeftColor = '#ff3366';
         actionEl.style.color = '#ff3366';
@@ -1046,38 +1073,38 @@
       let unloggedPct = totalH > 0 ? ((unloggedH / totalH) * 100).toFixed(0) : 0;
       
       if (topRealCtx !== "Nenhum") {
-          document.getElementById('insight-context').innerHTML = `💡 <b>Note que:</b> O Endlos não sabe o que aconteceu em ${unloggedPct}% do seu tempo geral. O polo real documentado foi "${topRealCtx}".`;
+          document.getElementById('insight-context').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> O Endlos não sabe o que aconteceu em ${unloggedPct}% do seu tempo geral. O polo real documentado foi "${topRealCtx}".`;
       } else {
-          document.getElementById('insight-context').innerHTML = `💡 <b>Note que:</b> Sem atividades documentadas para gerar estatísticas.`;
+          document.getElementById('insight-context').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> Sem atividades documentadas para gerar estatísticas.`;
       }
 
       let topAct = sortedAct[0] || "Nenhuma";
-      document.getElementById('insight-action').innerHTML = `💡 <b>Note que:</b> "${topAct}" foi a sua atividade dominante declarada, consumindo ${(actData[topAct]||0).toFixed(1)}h.`;
+      document.getElementById('insight-action').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> "${topAct}" foi a sua atividade dominante declarada, consumindo ${(actData[topAct]||0).toFixed(1)}h.`;
 
       let totalMealH = weekOrderPt.reduce((acc, d) => acc + mealByDay[d].h, 0);
       let totalMealC = weekOrderPt.reduce((acc, d) => acc + mealByDay[d].c, 0);
-      document.getElementById('insight-meal').innerHTML = `💡 <b>Note que:</b> Você registrou ${totalMealC} refeições, totalizando ${totalMealH.toFixed(1)}h na mesa.`;
+      document.getElementById('insight-meal').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> Você registrou ${totalMealC} refeições, totalizando ${totalMealH.toFixed(1)}h na mesa.`;
 
       let healthAlert = physicalH < 2.5 ? "Atenção ao risco de sedentarismo." : "Manutenção física adequada.";
-      document.getElementById('insight-health').innerHTML = `💡 <b>Note que:</b> O investimento total foi de ${physicalH.toFixed(1)}h no físico e ${mentalH.toFixed(1)}h no mental. ${healthAlert}`;
+      document.getElementById('insight-health').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> O investimento total foi de ${physicalH.toFixed(1)}h no físico e ${mentalH.toFixed(1)}h no mental. ${healthAlert}`;
 
       let sumUnwind = weekOrderPt.reduce((acc, d) => acc + unwindByDay[d], 0);
-      document.getElementById('insight-sleepUnwind').innerHTML = `💡 <b>Note que:</b> A sua média de sono foi de ${sleepMed.toFixed(1)}h, apoiada por um total de ${sumUnwind.toFixed(1)}h de descompressão.`;
+      document.getElementById('insight-sleepUnwind').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> A sua média de sono foi de ${sleepMed.toFixed(1)}h, apoiada por um total de ${sumUnwind.toFixed(1)}h de descompressão.`;
 
       let maxWorkDay = weekOrderPt.reduce((max, d) => workByDay[d] > workByDay[max] ? d : max, weekOrderPt[0]);
       let maxWastedDay = weekOrderPt.reduce((max, d) => wastedByDay[d] > wastedByDay[max] ? d : max, weekOrderPt[0]);
       if(workByDay[maxWorkDay] > 0 || wastedByDay[maxWastedDay] > 0) {
-        document.getElementById('insight-focusWasted').innerHTML = `💡 <b>Note que:</b> O seu pico de foco costuma ser na <b>${maxWorkDay}</b>, enquanto a maior distração declarada bate na <b>${maxWastedDay}</b>.`;
+        document.getElementById('insight-focusWasted').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> O seu pico de foco costuma ser na <b>${maxWorkDay}</b>, enquanto a maior distração declarada bate na <b>${maxWastedDay}</b>.`;
       } else {
-        document.getElementById('insight-focusWasted').innerHTML = `💡 <b>Note que:</b> Não há dados suficientes de Foco ou Distração para estabelecer um padrão diário.`;
+        document.getElementById('insight-focusWasted').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> Não há dados suficientes de Foco ou Distração para estabelecer um padrão diário.`;
       }
 
       let validWeeks = Object.keys(weeklyCompareData).filter(w => w && w !== "-");
       let maxWorkWeek = validWeeks.reduce((max, w) => weeklyCompareData[w].work > (weeklyCompareData[max]?.work || 0) ? w : max, validWeeks[0]);
       if(maxWorkWeek) {
-          document.getElementById('insight-weekly').innerHTML = `💡 <b>Note que:</b> O seu pico de Foco ocorreu na semana "${maxWorkWeek}" com ${weeklyCompareData[maxWorkWeek].work.toFixed(1)}h de execução.`;
+          document.getElementById('insight-weekly').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> O seu pico de Foco ocorreu na semana "${maxWorkWeek}" com ${weeklyCompareData[maxWorkWeek].work.toFixed(1)}h de execução.`;
       } else {
-          document.getElementById('insight-weekly').innerHTML = `💡 <b>Note que:</b> Dados insuficientes para efetuar um comparativo semanal.`;
+          document.getElementById('insight-weekly').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> Dados insuficientes para efetuar um comparativo semanal.`;
       }
 
       renderTimeGaps(wastedH, actData, actContextMap);
@@ -1172,18 +1199,6 @@
         charts[canvasId] = new Chart(document.getElementById(canvasId).getContext('2d'), { type: type, data: { labels: labels, datasets: datasets }, options: options });
       }
     }
-
-    document.getElementById('btn-present').onclick = function() {
-      const isPresenting = document.body.classList.toggle('present-mode');
-      this.innerHTML = isPresenting ? "🔙 SAIR" : "TELA CHEIA";
-      const canvases = document.querySelectorAll('canvas');
-      canvases.forEach(c => c.style.display = 'none');
-      setTimeout(() => {
-        canvases.forEach(c => c.style.display = 'block');
-        window.dispatchEvent(new Event('resize'));
-        Object.values(charts).forEach(chart => chart.resize());
-      }, 50); 
-    };    
   </script>
 </body>
 </html>

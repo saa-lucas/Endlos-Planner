@@ -2,16 +2,15 @@ function applyOutlookColorsOptimized(e) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = e ? e.range.getSheet() : ss.getSheetByName("Palette Entry");
   
-  // CORREÇÃO DE ALCANCE: Garante que passe da linha 27
   const lastRow = sheet.getMaxRows(); 
-  if (lastRow < 1) return;
+  if (lastRow < 2) return;
 
   const range = sheet.getRange(1, 1, lastRow, 18);
   let values = range.getValues();
   
-  // Sincronia da Coluna O (Ignorando Cabeçalho e Pattern - Começa na Linha 3)
+  // Sincronia da Coluna O
   const masterSelectionMap = {};
-  for (let i = 2; i < values.length; i++) { // 👇 i = 2
+  for (let i = 1; i < values.length; i++) { 
     const ctx = String(values[i][13] || "").trim().toLowerCase(); 
     const sub = String(values[i][17] || "").trim();               
     if (ctx !== "" && sub === "") {
@@ -19,19 +18,22 @@ function applyOutlookColorsOptimized(e) {
     }
   }
 
-  for (let i = 2; i < values.length; i++) { // 👇 i = 2
+  let changedSync = false;
+  for (let i = 1; i < values.length; i++) { 
     const ctx = String(values[i][13] || "").trim().toLowerCase();
     const sub = String(values[i][17] || "").trim();
     if (sub !== "" && masterSelectionMap[ctx] !== undefined) {
       if (values[i][14] !== masterSelectionMap[ctx]) {
-        // Agora isso nunca vai tentar escrever na célula O2
         sheet.getRange(i + 1, 15).setValue(masterSelectionMap[ctx]);
+        changedSync = true;
       }
     }
   }
 
-  SpreadsheetApp.flush();
-  values = range.getValues(); 
+  if (changedSync) {
+    SpreadsheetApp.flush();
+    values = range.getValues(); 
+  }
 
   const bg = range.getBackgrounds();
   const fontColors = range.getFontColors();
@@ -41,11 +43,9 @@ function applyOutlookColorsOptimized(e) {
   const isLightTheme = globalTheme.includes("LIGHT");
   const defaultTextColor = isLightTheme ? "#000000" : "#ffffff";
   
-  const patternHex = "#fff2cc";
-
-  // MAPEAMENTO: Fundo e Texto (Ignorando Cabeçalho e Pattern)
+  // MAPEAMENTO: Fundo e Texto (Ignorando Cabeçalho)
   const fillToTextMap = {};
-  for (let i = 2; i < values.length; i++) { // 👇 i = 2
+  for (let i = 1; i < values.length; i++) { 
     const fillHex = values[i][2]; 
     const textHex = values[i][4]; 
     if (isValidHex(fillHex) && isValidHex(textHex)) {
@@ -53,8 +53,8 @@ function applyOutlookColorsOptimized(e) {
     }
   }
 
-  // APLICAÇÃO DE CORES (Começa na Linha 3)
-  for (let i = 2; i < values.length; i++) { // 👇 i = 2
+  // APLICAÇÃO DE CORES
+  for (let i = 1; i < values.length; i++) { 
     const row = values[i];
 
     // COLUNAS DE BLOCO PURO (A, C, E, G, P) 
@@ -76,27 +76,15 @@ function applyOutlookColorsOptimized(e) {
     // --- COLUNA K (10) MANTIDA COM SEU CONCEITO ---
     if (isValidHex(row[2])) {
       const baseFillRaw = row[2].toString().trim();
-      const baseFillLower = baseFillRaw.toLowerCase();
       bg[i][10] = baseFillRaw;
-
-      if (baseFillLower === patternHex) {
-        fontColors[i][10] = fillToTextMap[baseFillLower] || defaultTextColor;
-      } else {
-        fontColors[i][10] = isColorMode ? (fillToTextMap[baseFillLower] || defaultTextColor) : defaultTextColor;
-      }
+      fontColors[i][10] = isColorMode ? (fillToTextMap[baseFillRaw.toLowerCase()] || defaultTextColor) : defaultTextColor;
     }
 
     // --- COLUNA Q (16) MANTIDA ORIGINAL ---
     if (isValidHex(row[16])) {
       const qFillRaw = row[16].toString().trim();
-      const qFillLower = qFillRaw.toLowerCase();
       bg[i][16] = qFillRaw; 
-      
-      if (qFillLower === patternHex) {
-        fontColors[i][16] = fillToTextMap[qFillLower] || defaultTextColor;
-      } else {
-        fontColors[i][16] = isColorMode ? (fillToTextMap[qFillLower] || defaultTextColor) : defaultTextColor; 
-      }
+      fontColors[i][16] = isColorMode ? (fillToTextMap[qFillRaw.toLowerCase()] || defaultTextColor) : defaultTextColor; 
     }
   }
 
@@ -104,14 +92,13 @@ function applyOutlookColorsOptimized(e) {
   range.setFontColors(fontColors);
 
   // Bordas na coluna K vinda da G (Stroke)
-  for (let i = 2; i < values.length; i++) { // 👇 i = 2
+  for (let i = 1; i < values.length; i++) { 
     if (isValidHex(values[i][2]) && isValidHex(values[i][6])) {
       sheet.getRange(i + 1, 11).setBorder(true, true, true, true, null, null, values[i][6], SpreadsheetApp.BorderStyle.SOLID);
     }
   }
 }
 
-// Única função de validação para evitar conflitos
 function isValidHex(color) {
   return typeof color === 'string' && /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(color.toString().trim());
 }

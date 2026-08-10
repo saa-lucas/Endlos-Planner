@@ -2,6 +2,9 @@
 <html>
   <head>
     <base target="_top">
+    <!-- FONT AWESOME: Ícones minimalistas e profissionais -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
       <style>
             * { box-sizing: border-box; }
             :root {
@@ -27,7 +30,7 @@
             .toggle-label { font-size: 10px; color: var(--text-secondary) !important; font-family: 'Courier New', monospace; }
             .sub-header { font-size: 9px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; margin-bottom: 6px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; }
 
-            /* COLOR PICKER (RECUPERADO) */
+            /* COLOR PICKER */
             .color-wrapper { display: flex; align-items: center; background-color: var(--bg-main); border: 1px solid var(--border); border-radius: 2px; padding: 2px; width: 85px; transition: border-color 0.2s ease; }
             .color-wrapper:focus-within { border-color: var(--text-secondary); }
             .color-hex { background: transparent !important; border: none !important; color: var(--text-primary) !important; font-family: 'Courier New', monospace; font-size: 10px; width: 100%; outline: none; padding-left: 4px; text-transform: uppercase; }
@@ -38,15 +41,18 @@
             .search-input, .sys-input { width: 100%; background: var(--bg-btn); color: var(--text-primary); border: 1px solid var(--border); padding: 8px 10px; font-family: 'Courier New', monospace; font-size: 11px; border-radius: 4px; outline: none; margin-bottom: 12px; }
             .sys-input:focus { border-color: var(--text-secondary); }
 
+            /* BOTÕES E ÍCONES */
             button, .btn, .btn-action, .btn-large-print { background-color: var(--bg-btn) !important; color: var(--text-secondary) !important; border: 1px solid var(--border) !important; border-radius: 2px !important; cursor: pointer; font-family: 'Courier New', monospace; transition: all 0.15s ease-in-out; outline: none; display: flex; align-items: center; justify-content: center; }
             button:hover, .btn:hover, .btn-action:hover, .btn-large-print:hover { background-color: var(--bg-btn-hover) !important; border-color: var(--border-hover) !important; color: var(--text-primary) !important; }
-            .header-actions .btn-action { padding: 0 !important; min-width: 38px !important; height: 38px !important; font-size: 11px; border-radius: 3px !important; }
-            .btn-large-print { width: 100%; padding: 12px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+            .header-actions .btn-action { padding: 0 !important; min-width: 38px !important; height: 38px !important; font-size: 14px; border-radius: 3px !important; }
+            
+            .btn-large-print { width: 100%; padding: 12px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; font-weight: bold; }
+            .btn-large-print i { margin-right: 10px; font-size: 14px; } 
 
             #list-container { display: flex; flex-direction: column; gap: 8px; }
             .btn-container { display: flex; gap: 6px; width: 100%; align-items: stretch; }
             .btn-container .btn { padding: 14px 16px; width: 100%; text-align: left; font-size: 11px; }
-            .btn-container .btn-action { height: auto !important; min-width: 42px !important; }
+            .btn-container .btn-action { height: auto !important; min-width: 42px !important; font-size: 14px; }
 
             .switch { position: relative; display: inline-block; width: 34px; height: 18px; }
             .switch input { opacity: 0; width: 0; height: 0; }
@@ -67,17 +73,18 @@
             .tree-actions-list { padding: 10px; padding-left: 20px; }
             .tree-action-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border); }
             .tree-action-item:last-child { border-bottom: none; }
-            .icon-btn { background: transparent !important; border: none !important; font-size: 11px; padding: 4px !important; min-width: auto !important; height: auto !important; color: var(--text-secondary) !important; }
+            .icon-btn { background: transparent !important; border: none !important; font-size: 13px; padding: 4px !important; min-width: auto !important; height: auto !important; color: var(--text-secondary) !important; }
             .icon-btn:hover { color: var(--text-primary) !important; }
 
             /* MODAL UI */
             .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; }
             .sys-modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; width: 90%; max-width: 300px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-            .modal-title { font-size: 12px; font-weight: bold; color: var(--text-primary); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+            .modal-title { font-size: 12px; font-weight: bold; color: var(--text-primary); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; align-items: center; gap: 6px; }
             .modal-label { font-size: 9px; color: var(--text-secondary); display: block; margin-bottom: 4px; text-transform: uppercase; }
             
-            #ui-toast { position: fixed; bottom: 20px; right: -300px; background-color: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border); border-left: 3px solid var(--text-primary); padding: 10px 14px; font-size: 11px; font-family: 'Courier New', monospace; transition: right 0.3s ease; z-index: 9999; }
+            #ui-toast { position: fixed; bottom: 20px; right: -300px; background-color: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border); border-left: 3px solid var(--text-primary); padding: 10px 14px; font-size: 11px; font-family: 'Courier New', monospace; transition: right 0.3s ease; z-index: 9999; border-radius: 2px; }
             #ui-toast.show { right: 20px; }
+            
             .footer { font-size: 9px; color: var(--text-secondary); margin-top: 40px; text-align: center; border-top: 1px dashed var(--border); padding-top: 15px; }
       </style>
   </head>
@@ -85,17 +92,17 @@
     <div class="header-container">
       <h3>Endlos<br>Planner</h3>
       <div class="header-actions">
-        <button id="config-btn" class="btn-action" title="Configurações e ADMIN">⚙️</button>
-        <button id="refresh-btn" class="btn-action" title="Atualizar Dashboard">🔄</button>
-        <button id="show-all-btn" class="btn-action" title="Mostrar todas as colunas">ALL</button>
-        <button id="add-week-btn" class="btn-action" title="Criar próxima semana">+</button>
+        <button id="config-btn" class="btn-action" title="Configurações e ADMIN"><i class="fa-solid fa-sliders"></i></button>
+        <button id="refresh-btn" class="btn-action" title="Atualizar Dashboard"><i class="fa-solid fa-rotate-right"></i></button>
+        <button id="show-all-btn" class="btn-action" title="Mostrar todas as colunas"><i class="fa-solid fa-border-all"></i></button>
+        <button id="add-week-btn" class="btn-action" title="Criar próxima semana"><i class="fa-solid fa-plus"></i></button>
       </div>
     </div>
 
-    <button id="print-btn" class="btn-large-print">🖨️ IMPRIMIR PDF</button>
-    <button id="smart-merge-btn" class="btn-large-print">✂️ MESCLAR BLOCOS</button>
-    <button id="reset-block-btn" class="btn-large-print" style="margin-bottom: 16px;">🧹 RESETAR BLOCO</button>
-    <button id="open-dash-btn" class="btn-large-print" style="margin-bottom: 16px;">📊 ABRIR DASHBOARD</button>
+    <button id="print-btn" class="btn-large-print"><i class="fa-solid fa-print"></i> IMPRIMIR PDF</button>
+    <button id="smart-merge-btn" class="btn-large-print"><i class="fa-solid fa-layer-group"></i> MESCLAR BLOCOS</button>
+    <button id="reset-block-btn" class="btn-large-print" style="margin-bottom: 16px;"><i class="fa-solid fa-broom"></i> RESETAR BLOCO</button>
+    <button id="open-dash-btn" class="btn-large-print" style="margin-bottom: 16px;"><i class="fa-solid fa-chart-pie"></i> ABRIR DASHBOARD</button>
 
     <div id="config-panel">
       <div class="sub-header">Preferências Globais</div>
@@ -106,7 +113,7 @@
           <option value="LIGHT_CLASSIC">LIGHT (CLÁSSICO)</option>
           <option value="DARK_MODERN">DARK (MODERNO)</option>
           <option value="LIGHT_MODERN">LIGHT (MODERNO)</option>
-          <option value="CREATE_NEW">➕ CRIAR NOVO...</option>
+          <option value="CREATE_NEW">+ CRIAR NOVO...</option>
         </select>
       </div>
 
@@ -139,8 +146,8 @@
         </div>
         
         <div style="display: flex; gap: 8px; margin-top: 12px;">
-          <button id="save-custom-btn" class="btn-large-print" style="flex: 1; margin: 0;">💾 SALVAR </button>
-          <button id="delete-custom-btn" class="btn-large-print" style="flex: 1; margin: 0; border-color: #ff555540 !important; color: #ff6b6b !important;" title="Excluir este tema">🗑️ APAGAR</button>
+          <button id="save-custom-btn" class="btn-large-print" style="flex: 1; margin: 0;"><i class="fa-solid fa-floppy-disk"></i> SALVAR </button>
+          <button id="delete-custom-btn" class="btn-large-print" style="flex: 1; margin: 0; border-color: #ff555540 !important; color: #ff6b6b !important;" title="Excluir este tema"><i class="fa-solid fa-trash-can"></i> APAGAR</button>
         </div>
       </div>
       <div class="setting-row"><span class="toggle-label" id="header-toggle-label">CABEÇALHOS: OFF</span><label class="switch"><input type="checkbox" id="header-toggle"><span class="slider"></span></label></div>
@@ -148,21 +155,21 @@
       <div class="setting-row"><span class="toggle-label" id="meal-toggle-label">MESCLAR REFEIÇÃO: ON</span><label class="switch"><input type="checkbox" id="meal-toggle" checked><span class="slider"></span></label></div>
       <div class="setting-row"><span class="toggle-label" id="unwind-toggle-label">UNWIND 1H: ON</span><label class="switch"><input type="checkbox" id="unwind-toggle" checked><span class="slider"></span></label></div>
       <div class="setting-row"><span class="toggle-label" id="skip-update-toggle-label">PULAR UPDATE: ON</span><label class="switch"><input type="checkbox" id="skip-update-toggle" checked><span class="slider"></span></label></div>
-      <button id="full-sync-btn" class="btn-large-print" style="border-color:var(--toast-error)!important; color:var(--toast-error)!important;">⚠️ RECONSTRUIR DATEN</button>
+      <button id="full-sync-btn" class="btn-large-print" style="border-color:var(--toast-error)!important; color:var(--toast-error)!important;"><i class="fa-solid fa-triangle-exclamation"></i> RECONSTRUIR DATEN</button>
 
       <div id="system-config-builder" style="margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 16px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <span style="font-size: 11px; color: var(--text-primary); font-weight: bold; letter-spacing: 1px;">⚙️ ADMIN: REGRAS DO SISTEMA</span>
+          <span style="font-size: 11px; color: var(--text-primary); font-weight: bold; letter-spacing: 1px;"><i class="fa-solid fa-gear" style="margin-right:6px;"></i> ADMIN: REGRAS DO SISTEMA</span>
         </div>
         
-        <input type="text" id="sys-search" class="search-input" placeholder="🔍 Buscar contexto ou ação..." onkeyup="handleSearch()">
+        <input type="text" id="sys-search" class="search-input" placeholder="Buscar contexto ou ação..." onkeyup="handleSearch()">
         
         <div style="display:flex; gap:8px; margin-bottom: 16px;">
           <div style="flex:1; display:flex; align-items:center; justify-content:space-between; background:var(--bg-btn); padding:6px 10px; border-radius:2px; border:1px solid var(--border);">
             <span style="font-size:9px; color:var(--toast-loading); font-weight:bold;">MODO EDIÇÃO</span>
             <label class="switch" style="transform: scale(0.8);"><input type="checkbox" id="adv-edit-toggle" onchange="renderTree()"><span class="slider"></span></label>
           </div>
-          <button class="btn-large-print" onclick="openContextModal()" style="margin:0; padding:6px; font-size:9px; flex:1; border-color:var(--text-secondary) !important; color:var(--text-primary) !important;">➕ ADD CONTEXTO</button>
+          <button class="btn-large-print" onclick="openContextModal()" style="margin:0; padding:6px; font-size:9px; flex:1; border-color:var(--text-secondary) !important; color:var(--text-primary) !important;"><i class="fa-solid fa-plus"></i> ADD CONTEXTO</button>
         </div>
 
         <div id="builder-tree-list"></div>
@@ -171,32 +178,39 @@
 
     <div id="sys-modal-overlay" class="modal-overlay">
       <div class="sys-modal" id="sys-modal">
-        <div class="modal-title" id="modal-title">EDITAR ITEM</div>
+        <div class="modal-title" id="modal-title"><i class="fa-solid fa-pen-to-square"></i> EDITAR ITEM</div>
         <input type="hidden" id="modal-target-id"><input type="hidden" id="modal-target-type"><input type="hidden" id="modal-parent-id">
         <span class="modal-label">NOME DO ITEM</span><input type="text" id="modal-input-name" class="sys-input" placeholder="Ex: Matemática">
         <div id="modal-color-group"><span class="modal-label">COR DA PALETA</span><select id="modal-select-color"></select></div>
         <span class="modal-label">MODO (IMPACTO NO SISTEMA)</span><select id="modal-select-mode"></select>
         <div style="display: flex; gap: 8px; margin-top: 20px;">
-          <button class="btn-large-print" style="margin:0; flex:1; border-color:var(--text-secondary)!important; color:var(--text-primary)!important;" onclick="saveModal()">SALVAR</button>
-          <button class="btn-large-print" style="margin:0; flex:1; border-color:transparent!important;" onclick="closeModal()">CANCELAR</button>
+          <button class="btn-large-print" style="margin:0; flex:1; border-color:var(--text-secondary)!important; color:var(--text-primary)!important;" onclick="saveModal()"><i class="fa-solid fa-check"></i> SALVAR</button>
+          <button class="btn-large-print" style="margin:0; flex:1; border-color:transparent!important;" onclick="closeModal()"><i class="fa-solid fa-xmark"></i> CANCELAR</button>
         </div>
       </div>
     </div>
 
     <div id="forced-modal-overlay" class="modal-overlay" style="background: rgba(0,0,0,0.95);">
       <div class="sys-modal">
-        <div class="modal-title" style="color: var(--toast-warning);">⚠️ AÇÃO NÃO MAPEADA</div>
+        <div class="modal-title" style="color: var(--toast-warning);"><i class="fa-solid fa-triangle-exclamation"></i> AÇÃO NÃO MAPEADA</div>
         <p style="font-size: 11px; color: var(--text-primary); margin-bottom: 16px; line-height: 1.4;">
           A ação <strong id="forced-act-name" style="color:var(--toast-loading);"></strong> (Contexto: <span id="forced-ctx-name"></span>) não possui um Mode associado no banco de dados.
         </p>
         <span class="modal-label">Defina o impacto desta ação:</span>
         <select id="forced-select-mode" class="sys-input" style="margin-bottom: 20px;"></select>
-        <button id="forced-btn-save" class="btn-large-print" style="border-color: var(--toast-success) !important; color: var(--toast-success) !important; font-weight: bold;">SALVAR & CONTINUAR</button>
+        <button id="forced-btn-save" class="btn-large-print" style="border-color: var(--toast-success) !important; color: var(--toast-success) !important; font-weight: bold;"><i class="fa-solid fa-check"></i> SALVAR & CONTINUAR</button>
       </div>
     </div>
 
     <div id="list-container" style="margin-top: 10px;">Carregando semanas...</div>
-    <div class="footer" id="sync-status">Sincronizado</div>
+    
+    <div class="footer" style="display: flex; flex-direction: column; gap: 6px;">
+      <span id="sync-status">Sincronizado</span>
+      <span style="font-family: 'Courier New', monospace; opacity: 0.4; letter-spacing: 2px; font-size: 9px;">
+        ⌘ saa-lucas
+      </span>
+    </div>
+    
     <div id="ui-toast"></div>
 
     <script>
@@ -205,14 +219,16 @@
       let previewTimeout = null; 
 
       // ===============================================
-      // TOAST SYSTEM 
+      // TOAST SYSTEM (Atualizado com FontAwesome)
       // ===============================================
       function showSidebarToast(message, type = 'success') {
         var toast = document.getElementById('ui-toast');
-        let icon = '✅'; let color = 'var(--toast-success)';
-        if (type === 'loading') { icon = '⏳'; color = 'var(--toast-loading)'; }
-        else if (type === 'error') { icon = '❌'; color = 'var(--toast-error)'; }
-        toast.innerHTML = `${icon} ${message}`; toast.style.borderLeftColor = color; toast.classList.add('show');
+        let icon = '<i class="fa-solid fa-check"></i>'; let color = 'var(--toast-success)';
+        if (type === 'loading') { icon = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; color = 'var(--toast-loading)'; }
+        else if (type === 'error') { icon = '<i class="fa-solid fa-xmark"></i>'; color = 'var(--toast-error)'; }
+        
+        toast.innerHTML = `<div style="display:flex; align-items:center; gap:8px;">${icon}<span>${message}</span></div>`; 
+        toast.style.borderLeftColor = color; toast.classList.add('show');
         if (type !== 'loading') { setTimeout(() => toast.classList.remove('show'), 4000); }
       }
 
@@ -263,18 +279,18 @@
           timeBg: document.getElementById('ui-time-bg').value, timeText: document.getElementById('ui-time-text').value,
           patternFill: document.getElementById('ui-pattern-fill').value, patternSide: document.getElementById('ui-pattern-side').value  
         };
-        var btn = this; var originalText = "💾 SALVAR"; btn.innerText = 'SALVANDO...';
+        var btn = this; var originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> SALVANDO...';
         google.script.run.withSuccessHandler(function(res) {
-          if(res && res.startsWith("ERRO")) { showSidebarToast(res, "error"); btn.innerText = originalText; } 
-          else { btn.innerText = '✅ SALVO!'; setTimeout(() => { btn.innerText = originalText; }, 2000); }
+          if(res && res.startsWith("ERRO")) { showSidebarToast(res, "error"); btn.innerHTML = originalHTML; } 
+          else { btn.innerHTML = '<i class="fa-solid fa-check"></i> SALVO!'; setTimeout(() => { btn.innerHTML = originalHTML; }, 2000); }
         }).saveCustomThemeUI(currentThemeId, newUi);
       };
 
       document.getElementById('delete-custom-btn').onclick = function() {
         if (!confirm("Tem certeza que deseja apagar este tema permanentemente?")) return;
-        var btn = this; var originalText = btn.innerText; btn.innerText = '⏳'; btn.disabled = true;
+        var btn = this; var originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; btn.disabled = true;
         google.script.run.withSuccessHandler(function(res) {
-          btn.disabled = false; btn.innerText = originalText;
+          btn.disabled = false; btn.innerHTML = originalHTML;
           if (res.status === "SUCESSO") {
             let select = document.getElementById('theme-selector');
             for (let i = 0; i < select.options.length; i++) { if (select.options[i].value === currentThemeId) { select.remove(i); break; } }
@@ -290,7 +306,7 @@
           google.script.run.withSuccessHandler((res) => {
             this.disabled = false;
             if (res.status === "SUCESSO") {
-               let newOpt = document.createElement("option"); newOpt.value = res.themeKey; newOpt.text = "⭐ " + res.themeName.toUpperCase();
+               let newOpt = document.createElement("option"); newOpt.value = res.themeKey; newOpt.text = "★ " + res.themeName.toUpperCase();
                this.insertBefore(newOpt, this.lastElementChild);
                this.value = res.themeKey; currentThemeId = res.themeKey;
                document.getElementById('ui-customizer').style.display = 'block'; updateColorPickers(res.ui);
@@ -314,19 +330,6 @@
       // SYSTEM BUILDER (ESTADO ÚNICO & POLLING)
       // ===============================================
       const MODES_OPTIONS = ["Entrada", "Saída", "Suporte", "Desperdício", "Recuperação"];
-      const PALETTE_COLORS = [
-        { name: "Dark red", hex: "#2d0a0a" }, { name: "Cranberry", hex: "#310d14" }, { name: "Dark orange", hex: "#331500" },
-        { name: "Bronze", hex: "#3a2208" }, { name: "Peach", hex: "#3d2600" }, { name: "Marigold", hex: "#3d3100" },
-        { name: "Gold", hex: "#2d260c" }, { name: "Dark Brown", hex: "#2a1505" }, { name: "Lime", hex: "#212e0c" },
-        { name: "Forest", hex: "#152b15" }, { name: "Light green", hex: "#1c3314" }, { name: "Dark green", hex: "#0c260c" },
-        { name: "Light teal", hex: "#0c2d2d" }, { name: "Dark teal", hex: "#0c2626" }, { name: "Steel", hex: "#122633" },
-        { name: "Sky blue", hex: "#0c2d3d" }, { name: "Dark blue", hex: "#0d1a33" }, { name: "Lavender", hex: "#211a33" },
-        { name: "Dark purple", hex: "#261833" }, { name: "Pink", hex: "#331422" }, { name: "Plum", hex: "#2b112c" },
-        { name: "Beige", hex: "#332d22" }, { name: "Mink", hex: "#2d2625" }, { name: "Silver", hex: "#1f2425" },
-        { name: "Charcoal", hex: "#151515" }, { name: "Pattern", hex: "#fff2cc" }
-      ];
-
-      function getColorHex(name) { const col = PALETTE_COLORS.find(c => c.name === name); return col ? col.hex : "#333333"; }
       
       let sysConfigState = { contexts: [], actions: [] };
       let searchQuery = "";
@@ -348,10 +351,10 @@
       function loadSystemConfigFromDatabase(isBackgroundUpdate = false) {
         if (!isBackgroundUpdate) showSidebarToast("Lendo banco...", "loading");
         google.script.run.withSuccessHandler(function(jsonString) {
-             sysConfigState = JSON.parse(jsonString); renderTree(); 
-             if (!isBackgroundUpdate) showSidebarToast("Sincronizado", "success");
-             document.getElementById('sync-status').innerText = "Sistema Sincronizado";
-             checkForOrphanActions(); 
+              sysConfigState = JSON.parse(jsonString); renderTree(); 
+              if (!isBackgroundUpdate) showSidebarToast("Sincronizado", "success");
+              document.getElementById('sync-status').innerText = "Sistema Sincronizado";
+              checkForOrphanActions(); 
           }).withFailureHandler(err => { if(!isBackgroundUpdate) showSidebarToast("Erro: " + err.message, "error"); })
           .getSystemConfigFromPalette();
       }
@@ -390,19 +393,19 @@
         btnSave.onclick = () => {
           let selectedMode = selectEl.value;
           if (!selectedMode) { showSidebarToast("Selecione um modo obrigatório", "error"); return; }
-          btnSave.innerText = "⏳ GRAVANDO..."; btnSave.disabled = true;
+          btnSave.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> GRAVANDO...'; btnSave.disabled = true;
           google.script.run.withSuccessHandler(() => {
-             pendingActionsQueue.shift(); btnSave.innerText = "SALVAR & CONTINUAR"; btnSave.disabled = false;
+             pendingActionsQueue.shift(); btnSave.innerHTML = '<i class="fa-solid fa-check"></i> SALVAR & CONTINUAR'; btnSave.disabled = false;
              document.getElementById('forced-modal-overlay').style.display = 'none';
              processNextOrphanAction(); if (pendingActionsQueue.length === 0) loadSystemConfigFromDatabase();
           }).withFailureHandler(err => {
-             showSidebarToast(err.message, "error"); btnSave.innerText = "TENTAR NOVAMENTE"; btnSave.disabled = false;
+             showSidebarToast(err.message, "error"); btnSave.innerHTML = '<i class="fa-solid fa-rotate-right"></i> TENTAR NOVAMENTE'; btnSave.disabled = false;
           }).saveSingleActionMode(actionToProcess.name, selectedMode);
         };
         document.getElementById('forced-modal-overlay').style.display = 'flex';
       }
 
-      // TREE RENDERER
+      // TREE RENDERER (Atualizado com FontAwesome)
       function renderTree() {
         const container = document.getElementById('builder-tree-list'); container.innerHTML = '';
         const isAdvanced = document.getElementById('adv-edit-toggle').checked;
@@ -412,15 +415,17 @@
 
         filteredCtx.forEach(ctx => {
           const node = document.createElement('div'); node.className = 'tree-node';
-          let headerHtml = `<div class="tree-header"><div class="tree-title-group"><div class="tree-color-dot" style="background:${getColorHex(ctx.colorName)}"></div><span class="tree-title">${ctx.name}</span><span class="tree-mode">${ctx.mode || '⚠️ VAZIO'}</span></div>${isAdvanced ? `<div style="display:flex; gap:4px;"><button class="icon-btn" onclick="openContextModal('${ctx.id}')">✏️</button><button class="icon-btn del" style="color:var(--toast-error)!important;" onclick="deleteContext('${ctx.id}')">🗑️</button></div>` : ''}</div>`;
+          
+          let modeBadge = ctx.mode ? `<span class="tree-mode">${ctx.mode}</span>` : `<span class="tree-mode" style="color:var(--toast-error);"><i class="fa-solid fa-triangle-exclamation"></i> VAZIO</span>`;
+          let headerHtml = `<div class="tree-header"><div class="tree-title-group"><div class="tree-color-dot" style="background:${ctx.colorHex}"></div><span class="tree-title">${ctx.name}</span>${modeBadge}</div>${isAdvanced ? `<div style="display:flex; gap:4px;"><button class="icon-btn" onclick="openContextModal('${ctx.id}')"><i class="fa-solid fa-pen"></i></button><button class="icon-btn del" style="color:var(--toast-error)!important;" onclick="deleteContext('${ctx.id}')"><i class="fa-solid fa-trash-can"></i></button></div>` : ''}</div>`;
           
           let acts = sysConfigState.actions.filter(a => a.contextId === ctx.id && a.name.toLowerCase().includes(searchQuery));
           let actsHtml = `<div class="tree-actions-list">`;
           acts.forEach(a => {
-            let modeDisplay = a.modeOverride ? a.modeOverride : `⚠️ ERRO (Sem Mode)`;
-            actsHtml += `<div class="tree-action-item"><div class="tree-title-group"><span class="act-title">${a.name}</span><span class="tree-mode" style="${!a.modeOverride ? 'color:var(--toast-error); font-weight:bold;' : ''}">${modeDisplay}</span></div>${isAdvanced ? `<div style="display:flex; gap:4px;"><button class="icon-btn" onclick="openActionModal('${ctx.id}', '${a.id}')">✏️</button><button class="icon-btn del" style="color:var(--toast-error)!important;" onclick="deleteAction('${a.id}')">🗑️</button></div>` : ''}</div>`;
+            let modeDisplay = a.modeOverride ? a.modeOverride : `<i class="fa-solid fa-triangle-exclamation"></i> ERRO (Sem Mode)`;
+            actsHtml += `<div class="tree-action-item"><div class="tree-title-group"><span class="act-title">${a.name}</span><span class="tree-mode" style="${!a.modeOverride ? 'color:var(--toast-error); font-weight:bold;' : ''}">${modeDisplay}</span></div>${isAdvanced ? `<div style="display:flex; gap:4px;"><button class="icon-btn" onclick="openActionModal('${ctx.id}', '${a.id}')"><i class="fa-solid fa-pen"></i></button><button class="icon-btn del" style="color:var(--toast-error)!important;" onclick="deleteAction('${a.id}')"><i class="fa-solid fa-trash-can"></i></button></div>` : ''}</div>`;
           });
-          if (isAdvanced) actsHtml += `<button class="icon-btn" style="margin-top:6px; font-weight:bold; font-size:10px;" onclick="openActionModal('${ctx.id}', null)">+ Adicionar Ação</button>`;
+          if (isAdvanced) actsHtml += `<button class="icon-btn" style="margin-top:6px; font-weight:bold; font-size:10px;" onclick="openActionModal('${ctx.id}', null)"><i class="fa-solid fa-plus"></i> Adicionar Ação</button>`;
           actsHtml += `</div>`; node.innerHTML = headerHtml + actsHtml; container.appendChild(node);
         });
       }
@@ -430,15 +435,16 @@
       }
 
       function populateColorSelect(selectEl, currentVal) {
-        selectEl.innerHTML = ''; PALETTE_COLORS.forEach(c => { let opt = document.createElement('option'); opt.value = c.name; opt.text = c.name; if (c.name === currentVal) opt.selected = true; selectEl.appendChild(opt); });
+        const PALETTE_COLORS = ["Dark red", "Cranberry", "Dark orange", "Bronze", "Peach", "Marigold", "Gold", "Dark Brown", "Lime", "Forest", "Light green", "Dark green", "Light teal", "Dark teal", "Steel", "Sky blue", "Dark blue", "Lavender", "Dark purple", "Pink", "Plum", "Beige", "Mink", "Silver", "Charcoal", "Pattern"];
+        selectEl.innerHTML = ''; PALETTE_COLORS.forEach(c => { let opt = document.createElement('option'); opt.value = c; opt.text = c; if (c === currentVal) opt.selected = true; selectEl.appendChild(opt); });
       }
 
       function openContextModal(id = null) {
         document.getElementById('modal-target-type').value = 'CONTEXT'; document.getElementById('modal-target-id').value = id || '';
         document.getElementById('modal-color-group').style.display = 'block';
         let nameEl = document.getElementById('modal-input-name'); let modeEl = document.getElementById('modal-select-mode'); let colorEl = document.getElementById('modal-select-color');
-        if (id) { let ctx = sysConfigState.contexts.find(c => c.id === id); document.getElementById('modal-title').innerText = 'EDITAR CONTEXTO'; nameEl.value = ctx.name; populateColorSelect(colorEl, ctx.colorName); populateModeSelect(modeEl, ctx.mode); } 
-        else { document.getElementById('modal-title').innerText = 'NOVO CONTEXTO'; nameEl.value = ''; populateColorSelect(colorEl, 'Pattern'); populateModeSelect(modeEl, 'Entrada'); }
+        if (id) { let ctx = sysConfigState.contexts.find(c => c.id === id); document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> EDITAR CONTEXTO'; nameEl.value = ctx.name; populateColorSelect(colorEl, ctx.colorName); populateModeSelect(modeEl, ctx.mode); } 
+        else { document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-plus"></i> NOVO CONTEXTO'; nameEl.value = ''; populateColorSelect(colorEl, 'Pattern'); populateModeSelect(modeEl, 'Entrada'); }
         document.getElementById('sys-modal-overlay').style.display = 'flex';
       }
 
@@ -446,8 +452,8 @@
         document.getElementById('modal-target-type').value = 'ACTION'; document.getElementById('modal-target-id').value = actionId || ''; document.getElementById('modal-parent-id').value = contextId;
         document.getElementById('modal-color-group').style.display = 'none'; 
         let nameEl = document.getElementById('modal-input-name'); let modeEl = document.getElementById('modal-select-mode');
-        if (actionId) { let act = sysConfigState.actions.find(a => a.id === actionId); document.getElementById('modal-title').innerText = 'EDITAR AÇÃO'; nameEl.value = act.name; populateModeSelect(modeEl, act.modeOverride); } 
-        else { document.getElementById('modal-title').innerText = 'NOVA AÇÃO'; nameEl.value = ''; populateModeSelect(modeEl, 'Entrada'); }
+        if (actionId) { let act = sysConfigState.actions.find(a => a.id === actionId); document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> EDITAR AÇÃO'; nameEl.value = act.name; populateModeSelect(modeEl, act.modeOverride); } 
+        else { document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-plus"></i> NOVA AÇÃO'; nameEl.value = ''; populateModeSelect(modeEl, 'Entrada'); }
         document.getElementById('sys-modal-overlay').style.display = 'flex';
       }
 
@@ -478,28 +484,46 @@
       function deleteAction(id) { sysConfigState.actions = sysConfigState.actions.filter(a => a.id !== id); persistAndReload("Apagando do servidor..."); }
 
       // ===============================================
-      // BOTÕES DE UI (DASHBOARD, IMPRESSÃO, TOGGLES)
+      // BOTÕES DE UI (Atualizado com FontAwesome)
       // ===============================================
       document.getElementById('config-btn').onclick = function() { var panel = document.getElementById('config-panel'); panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none'; };
-      document.getElementById('refresh-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '⏳'; showSidebarToast("Atualizando dados...", "loading"); google.script.run.withSuccessHandler(() => { btn.innerText = orig; showSidebarToast("Atualizado", "success"); }).withFailureHandler((err) => { btn.innerText = orig; showSidebarToast("Falha: " + err.message, "error"); }).updateHoursDashboard("LAST_WEEK"); };
-      document.getElementById('full-sync-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '⏳ AGUARDE...'; google.script.run.withSuccessHandler(function(c) { if(c) { btn.innerText = '⏳ RECONSTRUINDO...'; showSidebarToast("Reconstruindo DATEN...", "loading"); google.script.run.withSuccessHandler(() => { btn.innerText = orig; showSidebarToast("Base limpa e reconstruída!", "success"); }).updateHoursDashboard("FULL_SYNC"); } else { btn.innerText = orig; } }).promptFullSync(); };
-      document.getElementById('open-dash-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '⏳'; var skip = document.getElementById('skip-update-toggle').checked; if (skip) { google.script.run.withSuccessHandler(() => { btn.innerText = orig; }).openDashboardModal(); } else { google.script.run.withSuccessHandler(() => { google.script.run.withSuccessHandler(() => { btn.innerText = orig; }).openDashboardModal(); }).updateHoursDashboard("FOCUSED"); } };
-      document.getElementById('print-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '⏳'; var newTab = window.open('about:blank', '_blank'); if (newTab) newTab.document.write("<h3>Gerando PDF...</h3>"); google.script.run.withSuccessHandler((d) => { btn.innerText = orig; if(d && newTab) { var b = atob(d); var a = new Uint8Array(b.length); for(var i=0; i<b.length; i++) a[i] = b.charCodeAt(i); newTab.location.href = URL.createObjectURL(new Blob([a], {type: 'application/pdf'})); } }).printOverview(window.currentFocus, document.getElementById('header-toggle').checked); };
-      document.getElementById('smart-merge-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '✂️'; google.script.run.withSuccessHandler(r => { btn.innerText = orig; if(r && r.startsWith("ERRO")) showSidebarToast(r, "error"); }).toggleSmartMerge(); };
-      document.getElementById('reset-block-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '🧹'; google.script.run.withSuccessHandler(r => { btn.innerText = orig; if(r && r.startsWith("ERRO")) showSidebarToast(r, "error"); }).resetBlock(); };
-      document.getElementById('show-all-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '...'; window.currentFocus = "ALL"; google.script.run.applySmartLock(true); google.script.run.withSuccessHandler(() => { btn.innerText = orig; }).showAllColumns(); };
-      document.getElementById('add-week-btn').onclick = function() { var btn = this; var orig = btn.innerText; btn.innerText = '...'; google.script.run.withSuccessHandler(() => { btn.innerText = orig; google.script.run.withSuccessHandler(renderButtons).getWeekNames(); }).duplicateLast18ColBlock(); };
+      
+      document.getElementById('refresh-btn').onclick = function() { var btn = this; var orig = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; showSidebarToast("Atualizando dados...", "loading"); google.script.run.withSuccessHandler(() => { btn.innerHTML = orig; showSidebarToast("Atualizado", "success"); }).withFailureHandler((err) => { btn.innerHTML = orig; showSidebarToast("Falha: " + err.message, "error"); }).updateHoursDashboard("LAST_WEEK"); };
+      
+      document.getElementById('full-sync-btn').onclick = function() { var btn = this; var orig = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> AGUARDE...'; google.script.run.withSuccessHandler(function(c) { if(c) { btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> RECONSTRUINDO...'; showSidebarToast("Reconstruindo DATEN...", "loading"); google.script.run.withSuccessHandler(() => { btn.innerHTML = orig; showSidebarToast("Base limpa e reconstruída!", "success"); }).updateHoursDashboard("FULL_SYNC"); } else { btn.innerHTML = orig; } }).promptFullSync(); };
+      
+      document.getElementById('open-dash-btn').onclick = function() { var btn = this; var orig = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ABRIR DASHBOARD'; var skip = document.getElementById('skip-update-toggle').checked; if (skip) { google.script.run.withSuccessHandler(() => { btn.innerHTML = orig; }).openDashboardModal(); } else { google.script.run.withSuccessHandler(() => { google.script.run.withSuccessHandler(() => { btn.innerHTML = orig; }).openDashboardModal(); }).updateHoursDashboard("FOCUSED"); } };
+      
+      document.getElementById('print-btn').onclick = function() { var btn = this; var orig = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> GERANDO PDF...'; var newTab = window.open('about:blank', '_blank'); if (newTab) newTab.document.write("<h3 style='font-family:sans-serif'>Gerando PDF...</h3>"); google.script.run.withSuccessHandler((d) => { btn.innerHTML = orig; if(d && newTab) { var b = atob(d); var a = new Uint8Array(b.length); for(var i=0; i<b.length; i++) a[i] = b.charCodeAt(i); newTab.location.href = URL.createObjectURL(new Blob([a], {type: 'application/pdf'})); } }).printOverview(window.currentFocus, document.getElementById('header-toggle').checked); };
+      
+      document.getElementById('smart-merge-btn').onclick = function() { var btn = this; var orig = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> MESCLANDO...'; google.script.run.withSuccessHandler(r => { btn.innerHTML = orig; if(r && r.startsWith("ERRO")) showSidebarToast(r, "error"); }).toggleSmartMerge(); };
+      
+      document.getElementById('reset-block-btn').onclick = function() { var btn = this; var orig = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> RESETANDO...'; google.script.run.withSuccessHandler(r => { btn.innerHTML = orig; if(r && r.startsWith("ERRO")) showSidebarToast(r, "error"); }).resetBlock(); };
+      
+      document.getElementById('show-all-btn').onclick = function() { var btn = this; var orig = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; window.currentFocus = "ALL"; google.script.run.applySmartLock(true); google.script.run.withSuccessHandler(() => { btn.innerHTML = orig; }).showAllColumns(); };
+      
+      document.getElementById('add-week-btn').onclick = function() { var btn = this; var orig = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; google.script.run.withSuccessHandler(() => { btn.innerHTML = orig; google.script.run.withSuccessHandler(renderButtons).getWeekNames(); }).duplicateLast18ColBlock(); };
 
+      // ===============================================
+      // BOTÕES DE SEMANAS (Tradutor embutido)
+      // ===============================================
       function renderButtons(weeks) {
         var container = document.getElementById('list-container'); container.innerHTML = '';
         if (!weeks || weeks.length === 0) return;
+        
+        const mesesPT = { 'Jan': 'Jan', 'Feb': 'Fev', 'Mar': 'Mar', 'Apr': 'Abr', 'May': 'Mai', 'Jun': 'Jun', 'Jul': 'Jul', 'Aug': 'Ago', 'Sep': 'Set', 'Oct': 'Out', 'Nov': 'Nov', 'Dec': 'Dez' };
+
         weeks.forEach(function(name, index) {
           var bw = document.createElement('div'); bw.className = 'btn-container';
-          var btn = document.createElement('button'); btn.className = 'btn'; btn.innerText = name.replace('Week_', '').replace(/_/g, '/');
+          let btnLabel = name.replace('Week_', '').replace(/_/g, '/');
+          for (let eng in mesesPT) { btnLabel = btnLabel.replace(new RegExp(eng, 'g'), mesesPT[eng]); }
+
+          var btn = document.createElement('button'); btn.className = 'btn'; 
+          btn.innerText = btnLabel; 
           btn.onclick = function() { window.currentFocus = name; google.script.run.applySmartLock(false); google.script.run.focusWeek(name); }; bw.appendChild(btn);
           if (index === 0) {
-            var cBtn = document.createElement('button'); cBtn.className = 'btn-action'; cBtn.innerText = '🧹'; cBtn.onclick = function() { google.script.run.clearLastWeekContent(); }; bw.appendChild(cBtn);
-            var dBtn = document.createElement('button'); dBtn.className = 'btn-action'; dBtn.innerText = 'X'; dBtn.onclick = function() { google.script.run.withSuccessHandler(renderButtons).getWeekNames(); google.script.run.deleteLast18ColBlock(); }; bw.appendChild(dBtn);
+            var cBtn = document.createElement('button'); cBtn.className = 'btn-action'; cBtn.innerHTML = '<i class="fa-solid fa-broom"></i>'; cBtn.onclick = function() { google.script.run.clearLastWeekContent(); }; bw.appendChild(cBtn);
+            var dBtn = document.createElement('button'); dBtn.className = 'btn-action'; dBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>'; dBtn.onclick = function() { google.script.run.withSuccessHandler(renderButtons).getWeekNames(); google.script.run.deleteLast18ColBlock(); }; bw.appendChild(dBtn);
           }
           container.appendChild(bw);
         });
@@ -531,12 +555,11 @@
         syncTheme(); loadToggleMemory(); setupToggleListeners(); 
         google.script.run.withSuccessHandler(renderButtons).getWeekNames();
         
-        // 1. CARREGA OS TEMAS SALVOS E RESTAURA ESTADO DO CUSTOMIZER
         google.script.run.withSuccessHandler(function(savedThemes) {
           let select = document.getElementById('theme-selector');
           if (savedThemes && savedThemes.length > 0) {
             savedThemes.forEach(t => {
-              let opt = document.createElement('option'); opt.value = t.key; opt.text = "⭐ " + t.name.toUpperCase();
+              let opt = document.createElement('option'); opt.value = t.key; opt.text = "★ " + t.name.toUpperCase();
               select.insertBefore(opt, select.lastElementChild); 
             });
           }
@@ -552,7 +575,6 @@
           }).getCurrentUIState();
         }).getUserSavedThemes();
 
-        // 2. INICIA A SINCRONIZAÇÃO DA ÁRVORE (SYSTEM BUILDER)
         google.script.run.withSuccessHandler(res => {
           sysVersion = res.newVersion; 
           loadSystemConfigFromDatabase();
@@ -561,107 +583,6 @@
       };
       
       setInterval(syncTheme, 2000);
-      // =========================================================================
-// MOTOR DE TEMAS (THEME ENGINE)
-// Lida com a criação, leitura e gravação de temas customizados
-// =========================================================================
-
-function getSidebarTheme() {
-  return PropertiesService.getDocumentProperties().getProperty('SIDEBAR_THEME') || 'DARK_MODERN';
-}
-
-function setSidebarTheme(theme) {
-  PropertiesService.getDocumentProperties().setProperty('SIDEBAR_THEME', theme);
-  return theme;
-}
-
-function getUserSavedThemes() {
-  let props = PropertiesService.getDocumentProperties();
-  let themes = [];
-  let keys = props.getKeys();
-  
-  // Procura na memória do Google Sheets todos os temas que você criou
-  for (let i = 0; i < keys.length; i++) {
-    if (keys[i].startsWith('CUSTOM_')) {
-      let themeData = JSON.parse(props.getProperty(keys[i]));
-      themes.push({ key: keys[i], name: themeData.name || "Tema Customizado" });
-    }
-  }
-  return themes;
-}
-
-function getCurrentUIState() {
-  let themeId = getSidebarTheme();
-  let ui = getThemeUI(themeId);
-  return { theme: themeId, ui: ui };
-}
-
-function getThemeUI(themeId) {
-  let props = PropertiesService.getDocumentProperties();
-  
-  // Se for um tema seu, devolve as suas cores
-  if (themeId && themeId.startsWith('CUSTOM_')) {
-    let saved = props.getProperty(themeId);
-    if (saved) return JSON.parse(saved).ui;
-  }
-  
-  // Se for tema nativo, devolve os padrões fallback
-  if (themeId === 'LIGHT_MODERN' || themeId === 'LIGHT_CLASSIC') {
-    return { headerBg: '#f8f9fa', headerText: '#000000', timeBg: '#ffffff', timeText: '#000000', patternFill: '#f1f3f5', patternSide: '#dee2e6' };
-  }
-  return { headerBg: '#000000', headerText: '#ffffff', timeBg: '#0a0a0a', timeText: '#e0e0e0', patternFill: '#111111', patternSide: '#262626' };
-}
-
-function applyTheme(themeId) {
-  setSidebarTheme(themeId);
-  let ui = getThemeUI(themeId);
-  return JSON.stringify({ status: "SUCESSO", ui: ui });
-}
-
-function createNewAutoTheme() {
-  let props = PropertiesService.getDocumentProperties();
-  let id = "CUSTOM_" + new Date().getTime(); // Gera um ID único
-  let name = "TEMA " + Math.floor(Math.random() * 1000);
-  
-  // Cores iniciais aleatórias para começar
-  let defaultUi = { 
-    headerBg: '#0D1117', headerText: '#58A6FF', 
-    timeBg: '#161B22', timeText: '#C9D1D9', 
-    patternFill: '#0D1117', patternSide: '#21262D' 
-  };
-  
-  props.setProperty(id, JSON.stringify({ name: name, ui: defaultUi }));
-  setSidebarTheme(id);
-  
-  return { status: "SUCESSO", themeKey: id, themeName: name, ui: defaultUi };
-}
-
-function saveCustomThemeUI(themeId, newUi) {
-  if (!themeId.startsWith('CUSTOM_')) return "ERRO: Temas nativos não podem ser editados.";
-  
-  let props = PropertiesService.getDocumentProperties();
-  let saved = props.getProperty(themeId);
-  let themeData = saved ? JSON.parse(saved) : { name: "TEMA CUSTOMIZADO" };
-  
-  themeData.ui = newUi; // Atualiza com as cores do Color Picker
-  props.setProperty(themeId, JSON.stringify(themeData));
-  
-  return "SUCESSO";
-}
-
-function deleteCustomTheme(themeId) {
-   if (!themeId.startsWith('CUSTOM_')) return { status: "ERRO", message: "Não pode apagar temas do sistema." };
-   
-   PropertiesService.getDocumentProperties().deleteProperty(themeId);
-   let fallback = "DARK_MODERN";
-   setSidebarTheme(fallback);
-   
-   return { status: "SUCESSO", fallbackTheme: fallback };
-}
-
-function previewThemeColors(tempUi) {
-  return "SUCESSO";
-}
     </script>
   </body>
 </html>
