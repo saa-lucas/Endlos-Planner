@@ -57,12 +57,12 @@ function getDashboardDataJson() {
       colorMap["Sono (Calculado)"] = "#336699";
     }
 
+    // Só gera a cor oposta automática se você NÃO tiver cadastrado a "Distração" na paleta
     let leisureColor = colorMap["Lazer"] || colorMap["Leisure"] || colorMap["Unwind"] || "#00ffaa"; 
-    if (leisureColor) {
+    if (leisureColor && !colorMap["Distração"] && !colorMap["Distracao"]) {
       let rgbL = hexToRgb(leisureColor);
       let oppHex = "#" + ((1 << 24) + ((255 - rgbL[0]) << 16) + ((255 - rgbL[1]) << 8) + (255 - rgbL[2])).toString(16).slice(1);
       
-      // BLINDAGEM AQUI: Cobre todas as variações para o gerador dinâmico não falhar
       colorMap["Distração"] = oppHex;
       colorMap["Distracao"] = oppHex;
       colorMap["Tempo Perdido"] = oppHex;

@@ -2,7 +2,7 @@
 // O MOTOR DE DADOS PRINCIPAL (HIERARQUIA MODE)
 // ==========================================
 
-function updateHoursDashboard(mode = "LAST_WEEK") {
+function updateHoursDashboard(mode = "FULL_SYNC") { // <-- ALTERADO PARA FULL_SYNC POR PADRÃO
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const safeMode = String(mode).trim().toUpperCase();
   
@@ -28,9 +28,14 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
     unwind: "unwind",         
     leisure: "lazer",
     
-    // Saídas automáticas do sistema e seus MODES rígidos
     wastedOut: "Distração", 
     wastedMode: "Desperdício",
+
+    // --- A NOVA SEMÂNTICA CIRÚRGICA ---
+    unloggedAction: "Sem registro", 
+    unloggedContext: "Não Registrado",
+    unloggedMode: "Indeterminado",
+    // ----------------------------------
 
     sleepOutAction: "Sono (Calculado)",
     sleepOutContext: "Sono",
@@ -44,7 +49,7 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
   const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
   // ==========================================
-  // 🧠 LEITURA DA PALETA (AGORA COM MODE)
+  // 🧠 LEITURA DA PALETA
   // ==========================================
   const palData = sheetPal.getDataRange().getValues();
   const validEntries = new Set();
@@ -53,18 +58,16 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
   for (let i = 0; i < palData.length; i++) {
     const ctxRaw = palData[i][13]; // N: Contexto
     const subRaw = palData[i][17]; // R: Ação
-    const modeRaw = palData[i][18]; // S: Mode (A nova dimensão!)
+    const modeRaw = palData[i][18]; // S: Mode
 
     const ctx = ctxRaw ? String(ctxRaw).trim() : "";
     const sub = subRaw ? String(subRaw).trim() : "";
     const sysMode = modeRaw ? String(modeRaw).trim() : "";
 
-    // O Contexto define o Mode base
     if (ctx) { 
       validEntries.add(ctx.toLowerCase()); 
       hierarchy[ctx.toLowerCase()] = { visualName: ctx, parent: ctx, mode: sysMode }; 
     }
-    // A Ação pode sobrepor o Mode (ex: Reflexões -> Entrada). Se não, herda do Contexto.
     if (sub) { 
       validEntries.add(sub.toLowerCase()); 
       hierarchy[sub.toLowerCase()] = { 
@@ -94,70 +97,63 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
     }
   }
 
-  // O CÉREBRO GEOMÉTRICO DAS DATAS
-  const blockWidth = 18;
-  const dataStartCol = 4; 
-  let anchorDateObj = null;
-  let anchorAbsDayIndex = 0; 
-
+  // ==========================================
+  // 🗓️ O CÉREBRO DINÂMICO DE DATAS (À PROVA DE FALHAS)
+  // ==========================================
+  const dataStartCol = 4;
+  const colDates = [];
+  
+  let currentValidDate = null;
+  let colCounterForDay = 0;
+  
+  let trackedYear = new Date().getFullYear();
   for (let c = dataStartCol; c < numCols; c++) {
     if (orgData[6] && orgData[6][c] instanceof Date) {
-      let safeD = new Date(orgData[6][c].getTime() + (12 * 60 * 60 * 1000));
-      anchorDateObj = safeD;
-      
-      let wIdx = Math.floor((c - dataStartCol) / blockWidth);
-      let dIdx = Math.floor(((c - dataStartCol) % blockWidth) / 2);
-      if (dIdx > 6) dIdx = 6; 
-      
-      anchorAbsDayIndex = (wIdx * 7) + dIdx; 
+      trackedYear = orgData[6][c].getFullYear();
       break;
     }
   }
+  
+  let lastSeenMonth = -1;
 
-  if (!anchorDateObj) {
-    for (let c = dataStartCol; c < numCols; c++) {
-      let txt = String(orgDisplay[6][c]).trim();
-      let match = txt.match(/(\d{1,2})\/(\d{1,2})/); 
-      if (match) {
-        let m = parseInt(match[1]) - 1; 
-        let d = parseInt(match[2]);
-        let currYear = new Date().getFullYear();
-        anchorDateObj = new Date(currYear, m, d, 12, 0, 0); 
-        
-        let wIdx = Math.floor((c - dataStartCol) / blockWidth);
-        let dIdx = Math.floor(((c - dataStartCol) % blockWidth) / 2);
-        if (dIdx > 6) dIdx = 6;
-        anchorAbsDayIndex = (wIdx * 7) + dIdx;
-        break;
-      }
-    }
-  }
-
-  if (!anchorDateObj) anchorDateObj = new Date();
-
-  let absoluteStartDate = new Date(anchorDateObj.valueOf());
-  absoluteStartDate.setDate(absoluteStartDate.getDate() - anchorAbsDayIndex);
-
-  const colDates = [];
   for (let c = 0; c < numCols; c++) {
     if (c < dataStartCol) {
       colDates[c] = null;
-    } else {
-      let wIdx = Math.floor((c - dataStartCol) / blockWidth);
-      let dIdx = Math.floor(((c - dataStartCol) % blockWidth) / 2);
+      continue;
+    }
+
+    let rawVal = orgData[6] ? orgData[6][c] : null;
+    let txtVal = orgDisplay[6] ? String(orgDisplay[6][c]).trim() : "";
+
+    let extractedDate = null;
+    
+    if (rawVal instanceof Date) {
+      extractedDate = new Date(rawVal.getTime() + (12 * 60 * 60 * 1000));
+      trackedYear = extractedDate.getFullYear();
+      lastSeenMonth = extractedDate.getMonth();
+    } else if (txtVal.match(/^(\d{1,2})\/(\d{1,2})/)) {
+      let match = txtVal.match(/^(\d{1,2})\/(\d{1,2})/);
+      let d = parseInt(match[1], 10);
+      let m = parseInt(match[2], 10) - 1;
       
-      if (dIdx > 6) {
-        colDates[c] = null; 
-      } else {
-        let absDay = (wIdx * 7) + dIdx;
-        let colD = new Date(absoluteStartDate.valueOf());
-        colD.setDate(colD.getDate() + absDay);
-        colDates[c] = colD;
-      }
+      if (lastSeenMonth === 11 && m === 0) { trackedYear++; }
+      
+      extractedDate = new Date(trackedYear, m, d, 12, 0, 0);
+      lastSeenMonth = m;
+    }
+
+    if (extractedDate) {
+      currentValidDate = extractedDate;
+      colDates[c] = new Date(currentValidDate.valueOf());
+      colCounterForDay = 1; 
+    } else if (currentValidDate && colCounterForDay === 1) {
+      colDates[c] = new Date(currentValidDate.valueOf());
+      colCounterForDay = 2; 
+    } else {
+      colDates[c] = null;
     }
   }
 
-  // A GUILHOTINA DINÂMICA
   let maxLoggedDate = null;
   for (let c = 2; c < numCols; c++) {
     let tempAtiva = colDates[c];
@@ -205,9 +201,9 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
       isColVisible[c] = false;
       continue;
     }
-    if (mode === "FULL_SYNC") {
+    if (safeMode === "FULL_SYNC") {
       isColVisible[c] = true; 
-    } else if (mode === "LAST_WEEK") {
+    } else if (safeMode === "LAST_WEEK") {
       isColVisible[c] = dataAtiva ? (dataAtiva >= limitePassado) : false;
     } else {
       isColVisible[c] = !sheetOrg.isColumnHiddenByUser(c + 1); 
@@ -253,17 +249,20 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
       const clnVal = String(rawValue).trim().toLowerCase();
       const isDash = clnVal.length > 0 && clnVal.replace(/[-\s]/g, '') === '';
 
-      let rName, pName, mName; // Ação, Contexto, Mode
+      let rName, pName, mName;
 
       if (clnVal === "" || isDash) {
         if (isAwakeForCol[c]) {
-          rName = SYS.wastedOut; pName = SYS.wastedOut; mName = SYS.wastedMode;
+          // AQUI: A MUDANÇA DA SEMÂNTICA CIRÚRGICA
+          rName = SYS.unloggedAction; 
+          pName = SYS.unloggedContext; 
+          mName = SYS.unloggedMode;
         } else continue; 
       } else if (validEntries.has(clnVal)) {
         const info = hierarchy[clnVal];
         rName = info.visualName;
         pName = hierarchy[info.parent.toLowerCase()] ? hierarchy[info.parent.toLowerCase()].visualName : info.parent;
-        mName = info.mode || SYS.uncategorized; // Carimba o Mode!
+        mName = info.mode || SYS.uncategorized;
       } else {
         rName = String(rawValue).trim(); 
         pName = SYS.uncategorized; 
@@ -286,7 +285,6 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
         bHours = 1.0;
       }
 
-      // LÓGICA DA REFEIÇÃO
       let isPrevMeal = false; 
       let tempR = r - 1;
       while (tempR >= 8) {
@@ -358,7 +356,6 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
       }
 
       const countV = 1;
-      // ADICIONAMOS O MODE (mName) AQUI COMO A COLUNA 3
       activityLog.push({ data: [rName, pName, mName, year, mNum, mAbbr, dNum, dAbbr, wNum, fDate, "'" + sTime, "'" + eTime, bHours, countV] });
     }
   }
@@ -366,19 +363,17 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
   const lastRow = sheetDash.getLastRow();
   let dbTimeline = [];
   
-  if (mode !== "FULL_SYNC" && lastRow > 1) {
-    // Agora puxamos 14 colunas porque adicionamos o Mode!
+  if (safeMode !== "FULL_SYNC" && lastRow > 1) {
     dbTimeline = sheetDash.getRange(2, 9, lastRow - 1, 14).getDisplayValues();
   }
 
   // ==========================================
-  // O EXORCISMO DO BANCO (AJUSTADO PARA NOVOS ÍNDICES)
+  // O EXORCISMO DO BANCO
   // ==========================================
   const filteredDb = dbTimeline.filter(row => {
     const rAction = String(row[0]);
     if (rAction === SYS.sleepOutAction) return false; 
     
-    // Data completa agora é o índice 9 (porque o Mode empurrou tudo)
     const rDate = String(row[9]).replace(/'/g, "");
     if (rDate === "-" || rDate === "") return false; 
 
@@ -395,12 +390,12 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
   const combined = filteredDb.concat(activityLog.map(obj => obj.data));
   
   const sortable = combined.map(row => {
-    let p = String(row[9]).replace(/'/g, "").split("/"); // Indice 9
+    let p = String(row[9]).replace(/'/g, "").split("/"); 
     if (p.length < 3) p = [1, 1, 1970]; 
     
     let dObj = new Date(p[2], parseInt(p[1])-1, p[0], 12, 0, 0);
     
-    let tm = String(row[10]).replace(/'/g, "").split(":"); // Hora início Indice 10
+    let tm = String(row[10]).replace(/'/g, "").split(":"); 
     let mins = tm.length === 2 ? parseInt(tm[0])*60 + parseInt(tm[1]) : 9999;
     
     let sortMins = mins;
@@ -449,7 +444,6 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
       let sunStr = months[sunD.getMonth()] + String(sunD.getDate()).padStart(2, '0');
       let wN = "'" + monStr + "/" + sunStr;
 
-      // SLEEP CARIMBADO COMO "RECUPERAÇÃO" NA COLUNA 3
       finalTimeline.push([SYS.sleepOutAction, SYS.sleepOutContext, SYS.sleepMode, y, mN, months[d.getMonth()], dN, days[d.getDay()], wN, fD, "'" + lastSaaEnd.eTime, "'" + curr.sTime, sH, 1]);
       lastSaaEnd = null;
     }
@@ -462,7 +456,7 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
 
   finalTimeline.forEach(row => {
     outputTimeline.push(row);
-    let act = row[0], ctx = row[1], dur = parseFloat(row[12]) || 0, cnt = parseInt(row[13]) || 0; // Índices 12 e 13 agora!
+    let act = row[0], ctx = row[1], dur = parseFloat(row[12]) || 0, cnt = parseInt(row[13]) || 0; 
     if (dur > 0) {
       gC[act] = (gC[act] || 0) + dur; gO[act] = (gO[act] || 0) + cnt;
       cC[ctx] = (cC[ctx] || 0) + dur; cO[ctx] = (cO[ctx] || 0) + cnt;
@@ -485,5 +479,3 @@ function updateHoursDashboard(mode = "LAST_WEEK") {
   sheetDash.getRange("A1:V1").setFontWeight("bold");
   sheetDash.autoResizeColumns(1, 22);
 }
-
-// Mantenha as outras funções `saveToggleSettings` e `getToggleStates` intactas aqui abaixo.

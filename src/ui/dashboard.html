@@ -82,6 +82,8 @@
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: background 0.3s; }
     .kpi-title { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .kpi-title span { cursor: help; opacity: 0.6; transition: 0.2s; font-size: 12px; margin-left: 4px; }
+    .kpi-title span:hover { opacity: 1; }
     .kpi-value { font-size: 24px; color: var(--text-primary); font-weight: 700; font-family: 'Courier New', monospace; }
     .kpi-unit { font-size: 14px; color: var(--text-secondary); font-weight: 400; }
     .kpi-card.danger { border-color: #ff3366; }
@@ -125,7 +127,7 @@
     .exec-report-action-box li { margin-bottom: 8px; }
     .exec-report-action-box li strong { display: inline; color: var(--accent); }
 
-    /* ESTILOS DO "WRAPPED" (STORY MODE) */
+    /* ESTILOS DO "WRAPPED" */
     #wrapped-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: var(--bg-main); z-index: 10000;
@@ -159,6 +161,7 @@
     .wrapped-value.success { color: #00ffaa; }
     .wrapped-value.warning { color: #ffbb00; }
     .wrapped-value.purple { color: #9d4edd; }
+    .wrapped-value.gray { color: #888888; }
 
     .wrapped-nav { position: absolute; top: 0; bottom: 0; width: 50%; cursor: pointer; z-index: 10001; -webkit-tap-highlight-color: transparent;}
     .wrapped-nav.left { left: 0; }
@@ -200,7 +203,7 @@
 <body>
 
   <div class="header">
-    <h2>📊 DIAGNÓSTICO DE PADRÕES</h2>
+    <h2>DIAGNÓSTICO BIDIMENSIONAL</h2>
     <div class="filters">
       <select id="filter-year"><option value="ALL">ANO: TODOS</option></select>
       <select id="filter-month"><option value="ALL">MÊS: TODOS</option></select>
@@ -214,7 +217,7 @@
     </div>
   </div>
 
-  <div id="loading-msg" class="loading">⏳ Lendo a sua rotina...</div>
+  <div id="loading-msg" class="loading">⏳ Processando os seus logs...</div>
 
   <div id="dashboard-content" style="display:none;">
     
@@ -227,7 +230,7 @@
         </div>
         <div style="display: flex; gap: 16px; flex-wrap: wrap; flex: 2;">
           <div class="score-block">
-            <div class="score-title">Performance <span title="Relação pura entre o seu Tempo de Trabalho Focado e a sua Distração.">ℹ️</span></div>
+            <div class="score-title">Performance (Log) <span title="Qualidade da sua execução calculada estritamente sobre o tempo que você documentou.">ℹ️</span></div>
             <div class="score-value-row">
               <div id="diag-score" style="font-size: 36px; font-weight: bold; color: var(--accent); font-family: 'Courier New', monospace;">0</div>
               <div class="score-max">/ 100</div>
@@ -254,23 +257,25 @@
     <div id="advanced-section" style="display: none;">
       <div class="kpi-grid">
         <div class="kpi-card"><div class="kpi-title">Horas Totais</div><div class="kpi-value" id="kpi-total">0<span class="kpi-unit">h</span></div></div>
-        <div class="kpi-card"><div class="kpi-title">Registros</div><div class="kpi-value" id="kpi-count">0</div></div>
+        <div class="kpi-card">
+          <div class="kpi-title">Cobertura <span title="Tempo com registro / período monitorado">ℹ️</span></div>
+          <div class="kpi-value" id="kpi-coverage" style="color: #ffffff;">0<span class="kpi-unit">%</span></div>
+        </div>
         <div class="kpi-card"><div class="kpi-title">Trabalho Focado</div><div class="kpi-value" id="kpi-work" style="color: #0088ff;">0<span class="kpi-unit">h</span></div></div>
         <div class="kpi-card"><div class="kpi-title">Lazer</div><div class="kpi-value" id="kpi-leisure" style="color: #00ffaa;">0<span class="kpi-unit">h</span></div></div>
-        <div class="kpi-card"><div class="kpi-title">Distração</div><div class="kpi-value" id="kpi-wasted" style="color: #ff3366;">0<span class="kpi-unit">h</span></div></div>
+        <div class="kpi-card"><div class="kpi-title">Distração Real</div><div class="kpi-value" id="kpi-wasted" style="color: #ff3366;">0<span class="kpi-unit">h</span></div></div>
         <div class="kpi-card"><div class="kpi-title">Sono (Média)</div><div class="kpi-value" id="kpi-sleep-med">0<span class="kpi-unit">h</span></div></div>
-        <div class="kpi-card danger"><div class="kpi-title">⚠ Taxa de Distração</div><div class="kpi-value" id="kpi-wasted-rate" style="color: #ff3366;">0<span class="kpi-unit">%</span></div></div>
       </div>
 
       <div class="charts-grid">
         <div class="chart-card">
-          <h3>Tempo por Contexto</h3>
+          <h3>Tempo por Contexto (Visão Global)</h3>
           <div class="canvas-container"><canvas id="contextChart"></canvas></div>
           <div id="insight-context" class="chart-insight"></div>
         </div>
         
         <div class="chart-card">
-          <h3>Visão Geral de Ações</h3>
+          <h3>Visão Geral de Ações (Apenas Documentado)</h3>
           <div class="scroll-wrapper">
             <div class="scroll-inner" id="action-scroll-area">
               <canvas id="actionChart"></canvas>
@@ -280,7 +285,7 @@
         </div>
 
         <div class="chart-card auto-height">
-          <h3 id="gap-card-title">⏳ Buracos de Tempo</h3>
+          <h3 id="gap-card-title">⏳ Top Distrações (Sabotagem Declarada)</h3>
           <div id="gap-list" style="flex-grow:1;">
             <div class="gap-empty">Calculando...</div>
           </div>
@@ -288,7 +293,7 @@
         </div>
         
         <div class="chart-card">
-          <h3>Padrão Diário: Foco vs Distração</h3>
+          <h3>Padrão Diário: Foco, Distração e Não Registrado</h3>
           <div class="canvas-container"><canvas id="focusWastedDayChart"></canvas></div>
           <div id="insight-focusWasted" class="chart-insight"></div>
         </div>
@@ -312,7 +317,7 @@
         </div>
 
         <div class="chart-card extra-wide">
-          <h3>Comparativo Semanal: Carga e Produtividade</h3>
+          <h3>Comparativo Semanal: Composição do Tempo</h3>
           <div class="canvas-container"><canvas id="weeklyCompareChart"></canvas></div>
           <div id="insight-weekly" class="chart-insight"></div>
         </div>
@@ -354,37 +359,54 @@
     };
 
     /* ========================================================
-       FUNÇÕES ESTATÍSTICAS
+       SISTEMA DE ORDENAÇÃO CRONOLÓGICA (REGEX)
        ======================================================== */
-    function mean(arr) {
-      return arr.reduce((a,b)=>a+b,0) / arr.length;
+    const monthOrderMap = {
+      'jan': 1, 'fev': 2, 'feb': 2, 'mar': 3, 'abr': 4, 'apr': 4,
+      'mai': 5, 'may': 5, 'jun': 6, 'jul': 7, 'ago': 8, 'aug': 8,
+      'set': 9, 'sep': 9, 'out': 10, 'oct': 10, 'nov': 11, 'dez': 12, 'dec': 12
+    };
+
+    function sortWeekStrings(weeks) {
+      return weeks.filter(w => w && w !== "-").sort((a, b) => {
+        const getVal = (w) => {
+          const str = String(w).trim().toLowerCase();
+          const match = str.match(/([a-z]{3})\s*(\d+)/); 
+          if (match) {
+            const m = match[1];
+            const d = parseInt(match[2], 10);
+            return (monthOrderMap[m] || 99) * 100 + d;
+          }
+          return 9999;
+        };
+        return getVal(a) - getVal(b);
+      });
     }
 
+    function sortMonthStrings(months) {
+      return months.filter(m => m && m !== "-").sort((a, b) => {
+        const mA = String(a).trim().toLowerCase().substring(0, 3);
+        const mB = String(b).trim().toLowerCase().substring(0, 3);
+        return (monthOrderMap[mA] || 99) - (monthOrderMap[mB] || 99);
+      });
+    }
+
+    /* ========================================================
+       FUNÇÕES ESTATÍSTICAS
+       ======================================================== */
+    function mean(arr) { return arr.length === 0 ? 0 : arr.reduce((a,b)=>a+b,0) / arr.length; }
     function median(arr) {
       const sorted = [...arr].sort((a,b)=>a-b);
       const mid = Math.floor(sorted.length/2);
-      return sorted.length % 2 !== 0 
-        ? sorted[mid] 
-        : (sorted[mid-1] + sorted[mid]) / 2;
+      return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid-1] + sorted[mid]) / 2;
     }
-
-    function variance(arr) {
-      const m = mean(arr);
-      return mean(arr.map(x => (x - m) ** 2));
-    }
-
-    function stdDev(arr) {
-      return Math.sqrt(variance(arr));
-    }
+    function variance(arr) { const m = mean(arr); return mean(arr.map(x => (x - m) ** 2)); }
+    function stdDev(arr) { return Math.sqrt(variance(arr)); }
 
     function toggleStats() {
       const el = document.getElementById('stats-section');
       el.style.display = el.style.display === 'none' ? 'block' : 'none';
-      
-      // Auto-scroll para baixo ao abrir
-      if (el.style.display === 'block') {
-        setTimeout(() => { el.scrollIntoView({ behavior: 'smooth' }); }, 50);
-      }
+      if (el.style.display === 'block') { setTimeout(() => { el.scrollIntoView({ behavior: 'smooth' }); }, 50); }
     }
 
     /* ========================================================
@@ -405,53 +427,64 @@
       const wastedPct = currentMetrics.totalH > 0 ? ((currentMetrics.wastedH / currentMetrics.totalH) * 100).toFixed(0) : 0;
       const topCtx = currentMetrics.topContext || "Nada";
       
-      const wastedActions = Object.keys(globalActData).filter(a => globalActContextMap[a] === 'Distração').sort((a, b) => globalActData[b] - globalActData[a]);
-      const topWastedAction = wastedActions.length > 0 ? wastedActions[0] : "Desperdício Geral";
+      const wastedActions = Object.keys(globalActData).filter(a => globalActContextMap[a] === 'Distração' && a.toLowerCase() !== 'sem registro').sort((a, b) => globalActData[b] - globalActData[a]);
+      const topWastedAction = wastedActions.length > 0 ? wastedActions[0] : null;
       const topWastedH = wastedActions.length > 0 ? globalActData[topWastedAction] : currentMetrics.wastedH;
 
-      const verdict = getSystemVerdict(scores.performance, scores.health, currentMetrics.wastedH, currentMetrics.workH);
+      const verdict = getSystemVerdict(scores.performance, scores.health, currentMetrics.coverage, currentMetrics.wastedH, currentMetrics.workH);
       
       wrappedSlides = [
         {
           title: "O Seu Tempo",
           value: currentMetrics.totalH.toFixed(1) + "h",
           colorClass: "",
-          desc: "Este é o total de horas de vida que você mapeou neste período. A questão é: como você as gastou?",
+          desc: "Este é o total de horas que você viveu no período selecionado.",
           bgColor: "#111111"
-        },
-        {
-          title: "O Foco Principal",
-          value: topCtx,
-          colorClass: "accent",
-          desc: "Para o bem ou para o mal, foi aqui que você depositou a maior parte da sua energia.",
-          bgColor: "#051525"
         }
       ];
 
+      if (currentMetrics.coverage < 70) {
+        wrappedSlides.push({
+          title: "Lacuna de Informação",
+          value: (100 - currentMetrics.coverage).toFixed(0) + "%",
+          colorClass: "gray",
+          desc: `O tempo passou, mas o Endlos não sabe o que aconteceu. Você teve ${currentMetrics.unloggedH.toFixed(1)}h de período não observado.`,
+          bgColor: "#1a1a1a"
+        });
+      }
+
+      wrappedSlides.push({
+          title: "Foco (Documentado)",
+          value: topCtx,
+          colorClass: "accent",
+          desc: "Tirando o tempo não documentado, este foi o seu principal polo gravitacional de energia.",
+          bgColor: "#051525"
+      });
+
       if (currentMetrics.wastedH > 0) {
         wrappedSlides.push({
-          title: "A Distração",
+          title: "A Distração Real",
           value: currentMetrics.wastedH.toFixed(1) + "h",
           colorClass: "danger",
-          desc: `Isto representa ${wastedPct}% da sua rotina. Horas que literalmente escorreram pelos seus dedos.`,
+          desc: `Isto representa ${wastedPct}% da sua rotina total. Tempo explicitamente declarado como distração.`,
           bgColor: "#250505"
         });
         
-        if (wastedActions.length > 0) {
+        if (wastedActions.length > 0 && topWastedAction) {
            wrappedSlides.push({
-            title: "O Vilão",
+            title: "O Vilão Declarado",
             value: topWastedAction,
             colorClass: "danger",
-            desc: `Sozinha, esta atividade roubou-lhe ${topWastedH.toFixed(1)}h. Já pensou em colocar um bloqueio?`,
+            desc: `Sozinha, esta atividade assumida roubou-lhe ${topWastedH.toFixed(1)}h. Já pensou num bloqueio?`,
             bgColor: "#1a0505"
           });
         }
       } else {
         wrappedSlides.push({
           title: "Foco Blindado",
-          value: "0h",
+          value: "Limpo",
           colorClass: "success",
-          desc: "Nenhuma distração mapeada. O seu sistema está limpo. Mantenha o ritmo.",
+          desc: "Nenhuma distração real mapeada. O seu sistema documentado está limpo.",
           bgColor: "#052515"
         });
       }
@@ -460,7 +493,7 @@
         title: "Nota de Performance",
         value: scores.performance + "/100",
         colorClass: scores.performance >= 80 ? "success" : (scores.performance >= 60 ? "warning" : "danger"),
-        desc: `${verdict}.<br><br>Feche o Wrapped e veja o relatório de ação no painel.`,
+        desc: `${verdict}.<br><br>Feche o Wrapped e encare o relatório no painel.`,
         bgColor: "#111111"
       });
 
@@ -471,7 +504,6 @@
       
       currentWrappedIndex = 0;
       overlay.style.display = 'flex';
-      
       document.body.style.overflow = 'hidden';
 
       showWrappedSlide(currentWrappedIndex);
@@ -518,70 +550,39 @@
       wrappedTimer = setTimeout(nextWrappedSlide, SLIDE_DURATION);
     }
 
-    function nextWrappedSlide() {
-      showWrappedSlide(currentWrappedIndex + 1);
-    }
-
-    function prevWrappedSlide() {
-      if (currentWrappedIndex === 0) {
-        showWrappedSlide(0);
-      } else {
-        showWrappedSlide(currentWrappedIndex - 1);
-      }
-    }
-
+    function nextWrappedSlide() { showWrappedSlide(currentWrappedIndex + 1); }
+    function prevWrappedSlide() { showWrappedSlide(currentWrappedIndex === 0 ? 0 : currentWrappedIndex - 1); }
     function closeWrapped() {
       clearTimeout(wrappedTimer);
       document.getElementById('wrapped-overlay').style.display = 'none';
       document.body.style.overflow = 'auto';
     }
 
-
     /* ========================================================
        CÉREBRO DO TEMA
        ======================================================== */
     function applyTheme(isLight) {
       const body = document.body;
-      if (isLight) { 
-        body.classList.add('light-mode'); 
-        isLightMode = true; 
-      } else { 
-        body.classList.remove('light-mode'); 
-        isLightMode = false; 
-      }
+      if (isLight) { body.classList.add('light-mode'); isLightMode = true; } 
+      else { body.classList.remove('light-mode'); isLightMode = false; }
       Chart.defaults.color = isLightMode ? '#555' : '#aaa';
-      if (Object.keys(charts).length > 0) {
-        Object.values(charts).forEach(chart => chart.update());
-      }
+      if (Object.keys(charts).length > 0) { Object.values(charts).forEach(chart => chart.update()); }
     }
 
-    function toggleThemeManual() {
-      applyTheme(!document.body.classList.contains('light-mode'));
-    }
-
-    function checkBrowserTheme() {
-      const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-      applyTheme(prefersLight);
-    }
-
+    function toggleThemeManual() { applyTheme(!document.body.classList.contains('light-mode')); }
+    function checkBrowserTheme() { applyTheme(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches); }
+    
     function syncDashboardTheme() {
       if (AMBIENTE_ATUAL === 'PLANILHA' && typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function(themeString) {
+        google.script.run.withSuccessHandler(function(themeString) {
             if (themeString === 'light') { applyTheme(true); return; }
             if (themeString === 'dark')  { applyTheme(false); return; }
-            
-            google.script.run
-              .withSuccessHandler(function(themeMode) {
+            google.script.run.withSuccessHandler(function(themeMode) {
                 if (themeMode === 'light') applyTheme(true);
                 else if (themeMode === 'dark') applyTheme(false);
                 else checkBrowserTheme();
-              })
-              .withFailureHandler(checkBrowserTheme)
-              .getSpreadsheetThemeMode();
-          })
-          .withFailureHandler(checkBrowserTheme)
-          .getSidebarTheme(); 
+              }).withFailureHandler(checkBrowserTheme).getSpreadsheetThemeMode();
+          }).withFailureHandler(checkBrowserTheme).getSidebarTheme(); 
       } else {
         checkBrowserTheme();
         if (window.matchMedia) window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', checkBrowserTheme);
@@ -589,9 +590,7 @@
     }
 
     if (AMBIENTE_ATUAL === 'PLANILHA') setInterval(syncDashboardTheme, 2000); 
-
     window.onload = function() { syncDashboardTheme(); };
-
 
     /* ========================================================
        RESTO DA LÓGICA DO DASHBOARD
@@ -614,6 +613,7 @@
       const activeH = m.workH + m.wastedH;
       let performance = 100;
       if (activeH > 0) performance = (m.workH / activeH) * 100; 
+      
       let health = 100;
       if (m.sleepMed > 0) {
         if (m.sleepMed < 6.0) health -= 35;
@@ -621,6 +621,7 @@
       }
       if (m.physicalH < 2) health -= 20;
       if (m.mentalH < 1) health -= 10; 
+      
       return {
         performance: Math.max(0, Math.min(100, Math.round(performance))),
         health: Math.max(0, Math.min(100, Math.round(health)))
@@ -634,10 +635,10 @@
       return "🔴 Foco Comprometido";
     }
     function getPerfImpact(score) {
-      if (score >= 85) return "Ação alinhada com os seus objetivos.";
-      if (score >= 70) return "Bons resultados, mas com margem de fuga.";
-      if (score >= 50) return "A procrastinação está a atrasar a sua evolução.";
-      return "A sua rotina está a ser engolida por distrações.";
+      if (score >= 85) return "Ação alinhada com os seus objetivos (dentro do que foi mapeado).";
+      if (score >= 70) return "Bons resultados, mas com margem de fuga real.";
+      if (score >= 50) return "A procrastinação real está a atrasar a sua evolução.";
+      return "O seu tempo documentado está a ser engolido por distrações.";
     }
     function getHealthVerdict(score) {
       if (score >= 85) return "🟢 Motor Otimizado";
@@ -651,7 +652,8 @@
       if (score >= 50) return "O cansaço vai começar a sabotar o seu foco.";
       return "Risco alto de burnout ou quebra cognitiva iminente.";
     }
-    function getSystemVerdict(perf, health, wasted, work) {
+    function getSystemVerdict(perf, health, coverage, wasted, work) {
+      if (coverage < 50) return "🌫️ BAIXA CONFIABILIDADE DOS DADOS";
       if (wasted > work) return "🚨 ALERTA: AUTOSSABOTAGEM DETETADA";
       if (perf >= 80 && health >= 80) return "🚀 PADRÃO DE ELITE VALIDADO";
       if (perf >= 80 && health < 60) return "⚠️ ALTA EXECUÇÃO, MAS RISCO DE QUEBRA";
@@ -660,62 +662,44 @@
     }
 
     function getMainAction(m, scores) {
-      if (m.wastedH > m.workH) return "→ Corte brutal de distrações amanhã. Esse é o gargalo.";
+      if (m.coverage < 50) return "→ Preencha o seu dia. Você não enxerga o suficiente para tomar decisões.";
+      if (m.wastedH > m.workH) return "→ Corte brutal de distrações reais amanhã. Esse é o gargalo visível.";
       if (scores.health < 60) return "→ Corrija sono e energia antes de tentar performar.";
-      if (scores.performance < 70) return "→ Reduzir distração é o maior ganho imediato.";
+      if (scores.performance < 70) return "→ Reduzir distração declarada é o maior ganho imediato.";
       if (scores.performance >= 80 && scores.health >= 80) return "→ Sistema sólido. Aumente a carga de trabalho.";
       return "→ Mantenha consistência. O padrão está se formando.";
     }
 
     function buildSmartInsights(m, scores) {
       let html = "";
-      const wastedPct = m.totalH > 0 ? ((m.wastedH / m.totalH) * 100).toFixed(0) : 0;
-
-      html += `<div class="exec-report-section"><strong>📍 Realidade Atual:</strong>`;
-      if (m.wastedH > m.workH) {
-        html += `Hoje o seu sistema está invertido: você está gastando mais tempo distraído (${m.wastedH.toFixed(1)}h) do que avançando (${m.workH.toFixed(1)}h).`;
+      
+      html += `<div class="exec-report-section"><strong>📍 Realidade Bidimensional:</strong>`;
+      if (m.coverage < 60) {
+        html += `Você performou a ${scores.performance}/100, mas a sua cobertura de dados é de apenas ${m.coverage.toFixed(0)}%. Você voa às cegas em boa parte do tempo. A prioridade não é performance, é documentar.`;
       } else {
-        html += `Você já construiu uma base de execução (${m.workH.toFixed(1)}h de foco), mas ainda perde ${wastedPct}% do seu tempo em distração.`;
-      }
-      html += `</div>`;
-
-      html += `<div class="exec-report-section"><strong>⚠️ Consequência Direta:</strong>`;
-      if (scores.performance < 60) {
-        html += `Se esse padrão continuar, o seu progresso vai ser lento, inconsistente e frustrante. Você não está competindo com outras pessoas, está sendo travado pelo seu próprio sistema.`;
-      } else if (scores.performance < 80) {
-        html += `Você está progredindo, mas abaixo do seu potencial real. A diferença entre onde você está e onde poderia estar baseia-se puramente na execução.`;
-      } else {
-        html += `Você já está operando acima da média. O risco agora não é a falta de foco, mas o desgaste ao longo do tempo.`;
+        html += `Com uma boa cobertura de ${m.coverage.toFixed(0)}%, sabemos que o seu sistema dedicou ${m.workH.toFixed(1)}h ao avanço e perdeu ${m.wastedH.toFixed(1)}h em distrações reais assumidas.`;
       }
       html += `</div>`;
 
       html += `<div class="exec-report-section"><strong>🔋 Base Energética:</strong>`;
       if (scores.health < 60) {
-        html += `O seu corpo não está sustentando a sua ambição. Com ${m.sleepMed.toFixed(1)}h de sono e baixa atividade física, você está tentando performar sem energia real.`;
+        html += `O seu corpo não sustenta a ambição. Com ${m.sleepMed.toFixed(1)}h de sono e pouca ativação, falta combustível biológico real.`;
       } else if (scores.health < 80) {
-        html += `Você está funcional, mas sem margem. Qualquer aumento de carga pode derrubar o seu foco.`;
+        html += `Funcional, mas sem margem. Qualquer aumento de carga vai derrubar o foco.`;
       } else {
-        html += `A sua base está forte. Você tem energia suficiente para sustentar alta performance.`;
+        html += `A sua base está forte. Tem energia suficiente para sustentar alta performance.`;
       }
       html += `</div>`;
 
       html += `<div class="exec-report-action-box"><strong>🎯 O que você precisa fazer agora:</strong><ul>`;
-      if (m.wastedH > m.workH) {
-        html += `<li><strong>Corte imediato:</strong> Elimine a principal fonte de distração amanhã. Não apenas reduza, remova completamente.</li>`;
-      } else if (wastedPct > 15) {
-        html += `<li><strong>Otimização:</strong> Reduza sua distração pela metade. Esse é o maior ganho de performance disponível agora.</li>`;
-      }
-      if (m.sleepMed > 0 && m.sleepMed < 6.5) {
-        html += `<li><strong>Energia primeiro:</strong> Durma mais. Sem isso, qualquer tentativa de manter a disciplina vai falhar.</li>`;
-      }
-      if (m.physicalH < 2) {
-        html += `<li><strong>Ativação física:</strong> O seu corpo está parado. Isso reduz o seu foco muito mais do que você percebe.</li>`;
-      }
-      if (scores.performance >= 80 && scores.health >= 80) {
-        html += `<li><strong>Escalar:</strong> Aumente a dificuldade do seu trabalho. Você já tem estrutura sólida para crescer.</li>`;
-      }
-      if (m.wastedH <= m.workH && wastedPct <= 15 && (m.sleepMed === 0 || m.sleepMed >= 6.5) && m.physicalH >= 2 && !(scores.performance >= 80 && scores.health >= 80)) {
-        html += `<li><strong>Manter o curso:</strong> O seu sistema está equilibrado. O foco agora é manter a consistência dos registros.</li>`;
+      if (m.coverage < 60) {
+        html += `<li><strong>Aumente a Observação:</strong> O seu foco principal amanhã é preencher o planner e eliminar a área de "Não Registrado".</li>`;
+      } else if (m.wastedH > m.workH) {
+        html += `<li><strong>Corte imediato:</strong> Elimine a principal fonte de distração declarada amanhã. Não apenas reduza, remova completamente.</li>`;
+      } else if (scores.performance >= 80 && scores.health >= 80) {
+        html += `<li><strong>Escalar:</strong> Aumente a dificuldade do seu trabalho. Você tem cobertura, dados e estrutura sólida para crescer.</li>`;
+      } else {
+        html += `<li><strong>Otimização Fina:</strong> O seu sistema está em equilíbrio. Busque otimizar o tempo documentado de lazer vs. distração pura.</li>`;
       }
       html += `</ul></div>`;
       return html;
@@ -726,12 +710,13 @@
       const insightEl = document.getElementById('insight-gaps');
       const titleEl = document.getElementById('gap-card-title');
 
+      const excludeActions = ['sem registro', 'desperdício geral', 'start', 'end', 'início', 'fim'];
       const wastedActions = Object.keys(actData).filter(a =>
-        actContextMap[a] === 'Distração' 
+        actContextMap[a] === 'Distração' && !excludeActions.includes(a.toLowerCase())
       ).sort((a, b) => actData[b] - actData[a]);
 
       if (wastedActions.length > 0) {
-        titleEl.textContent = '🚨 Top Distrações Declaradas';
+        titleEl.textContent = '🚨 Top Distrações (Sabotagem Declarada)';
         const top = wastedActions.slice(0, 5);
         const maxH = actData[top[0]];
         const medals = ['🥇', '🥈', '🥉', '4º', '5º'];
@@ -748,7 +733,7 @@
         }).join('');
 
         insightEl.className = 'chart-insight critical';
-        insightEl.innerHTML = `💡 <b>"${wastedActions[0]}" é o seu principal ladrão de tempo: ${actData[wastedActions[0]].toFixed(1)}h.</b> Esse é o primeiro alvo a eliminar.`;
+        insightEl.innerHTML = `💡 <b>"${wastedActions[0]}" é o seu principal ladrão de tempo CONSCIENTE: ${actData[wastedActions[0]].toFixed(1)}h.</b>`;
         return;
       }
 
@@ -758,32 +743,24 @@
           <div class="gap-item">
             <span class="gap-rank">⚠️</span>
             <span class="gap-label">
-              Distração registrado
+              Distração registrada
               <span class="gap-sublabel">Contexto declarado, ação não especificada</span>
             </span>
             <div class="gap-bar-wrap"><div class="gap-bar" style="width:100%"></div></div>
             <span class="gap-hours">${wastedH.toFixed(1)}h</span>
-          </div>
-          <div style="margin-top:12px; padding:10px; background:rgba(255,51,102,0.06); border-radius:6px; border:1px dashed #ff336640;">
-            <div style="font-size:11px; color:var(--text-secondary); line-height:1.6;">
-              💡 Para ver <b>onde</b> o tempo está a escapar, registre a ação junto com o contexto.<br>
-              Ex: contexto <b>Distração</b> → ação <b>Instagram</b>, <b>YouTube</b>, etc.
-            </div>
           </div>`;
-
         insightEl.className = 'chart-insight critical';
-        insightEl.innerHTML = `💡 <b>${wastedH.toFixed(1)}h classificadas como Distração</b> — mas sem causa registrada. Quanto mais específico o registro, mais poderosa a análise.`;
+        insightEl.innerHTML = `💡 <b>${wastedH.toFixed(1)}h classificadas como Distração Genérica</b> — mas sem causa exata registrada.`;
         return;
       }
 
       titleEl.textContent = '⏳ Buracos de Tempo';
       container.innerHTML = `
         <div class="gap-empty">
-          Nenhuma Distração declarada neste período.<br><br>
-          <span style="font-size:11px;">Para ativar esta análise, registre atividades com contexto <b style="color:var(--text-primary)">Distração</b> na sua planilha.</span>
+          Nenhuma Distração Real declarada neste período.<br><br>
         </div>`;
       insightEl.className = 'chart-insight';
-      insightEl.innerHTML = `💡 Sem dados de dispersão declarados. Isso pode significar boa disciplina — ou que o registo está incompleto.`;
+      insightEl.innerHTML = `💡 A sua performance de foco dentro do que foi observado está blindada.`;
     }
 
     Chart.register(ChartDataLabels);
@@ -828,10 +805,9 @@
         });
       });
 
-      // AUTO-LOAD DA ÚLTIMA SEMANA
-      const validWeeks = [...new Set(rawData.map(d => d.week))].filter(w => w && w !== "-");
-      if (validWeeks.length > 0) {
-         document.getElementById('filter-week').value = validWeeks[validWeeks.length - 1];
+      const validWeeksGlobal = sortWeekStrings([...new Set(rawData.map(d => d.week))]);
+      if (validWeeksGlobal.length > 0) {
+         document.getElementById('filter-week').value = validWeeksGlobal[validWeeksGlobal.length - 1];
       }
 
       updateDropdowns(null);
@@ -853,8 +829,9 @@
       };
 
       const validYears = [...new Set(rawData.filter(d => matchOthers(d, 'year')).map(d => d.year))].sort((a,b)=>b-a);
-      const validMonths = [...new Set(rawData.filter(d => matchOthers(d, 'month')).map(d => d.month))];
-      const validWeeks = [...new Set(rawData.filter(d => matchOthers(d, 'week')).map(d => d.week))];
+      const validMonths = sortMonthStrings([...new Set(rawData.filter(d => matchOthers(d, 'month')).map(d => d.month))]);
+      const validWeeks = sortWeekStrings([...new Set(rawData.filter(d => matchOthers(d, 'week')).map(d => d.week))]);
+
       const weekOrderPt = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
       const validDays = weekOrderPt.filter(day => rawData.some(d => matchOthers(d, 'day') && dayMap[d.dayAbbr] === day));
 
@@ -886,6 +863,7 @@
     function calculateMean(arr) { return arr.length === 0 ? 0 : arr.reduce((a, b) => a + b, 0) / arr.length; }
 
     function getColor(itemName, parentContext) {
+      if (itemName && (itemName.toLowerCase() === 'não registrado' || itemName.toLowerCase() === 'sem registro')) return '#444444';
       if (paletteColors[itemName]) return paletteColors[itemName];
       if (parentContext && paletteColors[parentContext]) return paletteColors[parentContext];
       return isLightMode ? '#cccccc' : '#555555';
@@ -905,11 +883,11 @@
         return true;
       });
 
-      let totalH = 0, count = 0, workH = 0, leisureH = 0, wastedH = 0, mentalH = 0, physicalH = 0;
+      let totalH = 0, count = 0, workH = 0, leisureH = 0, wastedH = 0, mentalH = 0, physicalH = 0, unloggedH = 0;
       let sleepArr = [];
       let ctxData = {}, actData = {}, actContextMap = {};
       let mealByDay = {}, unwindByDay = {}, physicalByDay = {}, mentalByDay = {}, sleepByDay = {};
-      let workByDay = {}, wastedByDay = {}; 
+      let workByDay = {}, wastedByDay = {}, unloggedByDay = {}; 
       let weeklyCompareData = {}; 
 
       const weekOrderPt = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
@@ -921,6 +899,7 @@
         sleepByDay[day] = 0;
         workByDay[day] = 0;
         wastedByDay[day] = 0;
+        unloggedByDay[day] = 0;
       });
 
       filtered.forEach(d => {
@@ -929,21 +908,24 @@
         let ctx = String(d.context).trim();
         let act = String(d.action).trim();
         
-        // 1. NORMALIZAÇÃO CENTRALIZADA (Zero Gambiarra)
-        if (ctx === 'Distração' || ctx === 'Distracao') {
-            ctx = 'Distração';
-        }
-        if (ctx === 'Distração' && (!act || act.toLowerCase() === 'distração')) {
-            act = 'Desperdício Geral'; 
-        }
-
-        if (ctx === 'Health' || ctx === 'Saúde Física' || ctx === 'Physical') ctx = 'Saúde';
-        if (ctx === 'Mental Health' || ctx === 'Mental') ctx = 'Saúde Mental';
-        if (ctx === 'Sleep') ctx = 'Sono';
-        if (ctx === 'Leisure' || ctx === 'Spare Time') ctx = 'Lazer';
-        if (ctx === 'Meal') ctx = 'Refeição';
+        if (!weeklyCompareData[d.week]) weeklyCompareData[d.week] = { work: 0, leisure: 0, wasted: 0, unlogged: 0 };
         
-        if (!weeklyCompareData[d.week]) weeklyCompareData[d.week] = { work: 0, leisure: 0, wasted: 0 };
+        if (ctx.toLowerCase() === 'não registrado' || act.toLowerCase() === 'sem registro') {
+          unloggedH += d.duration;
+          if (unloggedByDay[dayBr] !== undefined) unloggedByDay[dayBr] += d.duration;
+          weeklyCompareData[d.week].unlogged += d.duration;
+          ctx = 'Não Registrado';
+          act = 'Sem registro';
+        }
+        else {
+          if (ctx === 'Distração' || ctx === 'Distracao') ctx = 'Distração';
+          if (ctx === 'Distração' && (!act || act.toLowerCase() === 'distração')) act = 'Desperdício Geral'; 
+          if (ctx === 'Health' || ctx === 'Saúde Física' || ctx === 'Physical') ctx = 'Saúde';
+          if (ctx === 'Mental Health' || ctx === 'Mental') ctx = 'Saúde Mental';
+          if (ctx === 'Sleep') ctx = 'Sono';
+          if (ctx === 'Leisure' || ctx === 'Spare Time') ctx = 'Lazer';
+          if (ctx === 'Meal') ctx = 'Refeição';
+        }
         
         if (ctx === 'Sono') { 
           if (act === 'Sleep (Calculated)' || act === 'Sono (Calculado)') {
@@ -968,7 +950,7 @@
           weeklyCompareData[d.week].wasted += d.duration;
           if (wastedByDay[dayBr] !== undefined) wastedByDay[dayBr] += d.duration;
         }
-        else if (ctx !== 'Refeição' && ctx !== 'Routine' && ctx !== 'Rotina') {
+        else if (ctx !== 'Refeição' && ctx !== 'Routine' && ctx !== 'Rotina' && ctx !== 'Não Registrado') {
           workH += d.duration;
           weeklyCompareData[d.week].work += d.duration;
           if (workByDay[dayBr] !== undefined) workByDay[dayBr] += d.duration;
@@ -976,9 +958,8 @@
 
         ctxData[ctx] = (ctxData[ctx] || 0) + d.duration;
         
-        // CORREÇÃO DO BUG DE DUPLICAÇÃO DE AÇÃO
         if (ctx === 'Distração' && act === 'Desperdício Geral') {
-          // Não adiciona em actData para não sujar os gráficos específicos
+          // Mantém limpo
         } else {
           actData[act] = (actData[act] || 0) + d.duration;
           actContextMap[act] = ctx;
@@ -993,20 +974,31 @@
       });
 
       let sleepMed = calculateMean(sleepArr);
+      let totalSleepSum = sleepArr.reduce((a,b)=>a+b,0);
+      let awakeHours = totalH - totalSleepSum;
+      let coveragePct = awakeHours > 0 ? ((awakeHours - unloggedH) / awakeHours) * 100 : 0;
+      if (coveragePct < 0) coveragePct = 0;
+
       let sortedCtx = Object.keys(ctxData).sort((a,b) => ctxData[b] - ctxData[a]);
-      let sortedAct = Object.keys(actData).sort((a,b) => actData[b] - actData[a]).filter(a => a !== 'Start' && a !== 'End' && a !== 'Início' && a !== 'Fim');
       
-      currentMetrics = { totalH, workH, leisureH, wastedH, sleepMed, physicalH, mentalH, topContext: sortedCtx[0] || null };
+      const excludeActionsFromCharts = ['sem registro', 'start', 'end', 'início', 'fim'];
+      let sortedAct = Object.keys(actData)
+        .filter(a => !excludeActionsFromCharts.includes(a.toLowerCase()))
+        .sort((a,b) => actData[b] - actData[a]);
+      
+      let topRealCtx = sortedCtx.find(c => c.toLowerCase() !== 'não registrado') || "Nenhum";
+
+      currentMetrics = { totalH, workH, leisureH, wastedH, unloggedH, coverage: coveragePct, sleepMed, physicalH, mentalH, topContext: topRealCtx };
       globalActData = actData; 
       globalActContextMap = actContextMap;
 
       const scores = generateScores(currentMetrics);
       
-      document.getElementById('diag-status').innerText = getSystemVerdict(scores.performance, scores.health, currentMetrics.wastedH, currentMetrics.workH);
+      document.getElementById('diag-status').innerText = getSystemVerdict(scores.performance, scores.health, coveragePct, currentMetrics.wastedH, currentMetrics.workH);
       
       const actionEl = document.getElementById('diag-main-action');
       actionEl.innerText = getMainAction(currentMetrics, scores);
-      if (currentMetrics.wastedH > currentMetrics.workH || scores.health < 60) {
+      if (coveragePct < 50 || currentMetrics.wastedH > currentMetrics.workH || scores.health < 60) {
         actionEl.style.borderLeftColor = '#ff3366';
         actionEl.style.color = '#ff3366';
         actionEl.style.background = 'rgba(255,51,102,0.08)';
@@ -1040,46 +1032,27 @@
 
       document.getElementById('diagnostic-text').innerHTML = buildSmartInsights(currentMetrics, scores);
 
-      // ── RENDERIZAÇÃO DAS ESTATÍSTICAS ──
-      const durations = filtered.map(d => d.duration).filter(d => d > 0);
-      if (durations.length > 0) {
-        const statsHTML = `
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; color:var(--text-secondary);">
-            <div><b style="color:var(--text-primary);">Média:</b> ${mean(durations).toFixed(2)}h</div>
-            <div><b style="color:var(--text-primary);">Mediana:</b> ${median(durations).toFixed(2)}h</div>
-            <div><b style="color:var(--text-primary);">Desv. Padrão:</b> ${stdDev(durations).toFixed(2)}</div>
-            <div><b style="color:var(--text-primary);">Variância:</b> ${variance(durations).toFixed(2)}</div>
-            <div><b style="color:var(--text-primary);">Mínimo:</b> ${Math.min(...durations).toFixed(2)}h</div>
-            <div><b style="color:var(--text-primary);">Máximo:</b> ${Math.max(...durations).toFixed(2)}h</div>
-          </div>
-        `;
-        document.getElementById('stats-content').innerHTML = statsHTML;
-      } else {
-        document.getElementById('stats-content').innerHTML = "Sem dados suficientes para estatísticas.";
-      }
-
       const sysWastedColor = paletteColors["Distração"] || "#ff3366";
-      const sysSleepColor = paletteColors["Sono"] || paletteColors["Sleep"] || "#888888";
       const safeAccent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0088ff';
 
       document.getElementById('kpi-total').innerHTML = totalH.toFixed(1) + '<span class="kpi-unit">h</span>';
-      document.getElementById('kpi-count').innerText = count;
+      document.getElementById('kpi-coverage').innerHTML = coveragePct.toFixed(0) + '<span class="kpi-unit">%</span>';
       document.getElementById('kpi-work').innerHTML = workH.toFixed(1) + '<span class="kpi-unit">h</span>';
       document.getElementById('kpi-leisure').innerHTML = leisureH.toFixed(1) + '<span class="kpi-unit">h</span>';
       document.getElementById('kpi-wasted').style.color = sysWastedColor;
       document.getElementById('kpi-wasted').innerHTML = wastedH.toFixed(1) + '<span class="kpi-unit">h</span>';
-      document.getElementById('kpi-sleep-med').style.color = sysSleepColor;
       document.getElementById('kpi-sleep-med').innerHTML = sleepMed.toFixed(1) + '<span class="kpi-unit">h</span>';
 
-      const wastedRate = totalH > 0 ? (wastedH / totalH) * 100 : 0;
-      document.getElementById('kpi-wasted-rate').innerHTML = wastedRate.toFixed(0) + '<span class="kpi-unit">%</span>';
-
-      let topCtx = sortedCtx[0] || "Nenhum";
-      let ctxPct = totalH > 0 ? ((ctxData[topCtx] / totalH) * 100).toFixed(0) : 0;
-      document.getElementById('insight-context').innerHTML = `💡 <b>Note que:</b> A maior parte do seu tempo mapeado (${ctxPct}%) foi alocado no bloco "${topCtx}".`;
+      let unloggedPct = totalH > 0 ? ((unloggedH / totalH) * 100).toFixed(0) : 0;
+      
+      if (topRealCtx !== "Nenhum") {
+          document.getElementById('insight-context').innerHTML = `💡 <b>Note que:</b> O Endlos não sabe o que aconteceu em ${unloggedPct}% do seu tempo geral. O polo real documentado foi "${topRealCtx}".`;
+      } else {
+          document.getElementById('insight-context').innerHTML = `💡 <b>Note que:</b> Sem atividades documentadas para gerar estatísticas.`;
+      }
 
       let topAct = sortedAct[0] || "Nenhuma";
-      document.getElementById('insight-action').innerHTML = `💡 <b>Note que:</b> "${topAct}" foi a sua atividade dominante, consumindo ${(actData[topAct]||0).toFixed(1)}h.`;
+      document.getElementById('insight-action').innerHTML = `💡 <b>Note que:</b> "${topAct}" foi a sua atividade dominante declarada, consumindo ${(actData[topAct]||0).toFixed(1)}h.`;
 
       let totalMealH = weekOrderPt.reduce((acc, d) => acc + mealByDay[d].h, 0);
       let totalMealC = weekOrderPt.reduce((acc, d) => acc + mealByDay[d].c, 0);
@@ -1094,7 +1067,7 @@
       let maxWorkDay = weekOrderPt.reduce((max, d) => workByDay[d] > workByDay[max] ? d : max, weekOrderPt[0]);
       let maxWastedDay = weekOrderPt.reduce((max, d) => wastedByDay[d] > wastedByDay[max] ? d : max, weekOrderPt[0]);
       if(workByDay[maxWorkDay] > 0 || wastedByDay[maxWastedDay] > 0) {
-        document.getElementById('insight-focusWasted').innerHTML = `💡 <b>Note que:</b> O seu pico de foco costuma ser na <b>${maxWorkDay}</b>, enquanto a maior distração bate na <b>${maxWastedDay}</b>.`;
+        document.getElementById('insight-focusWasted').innerHTML = `💡 <b>Note que:</b> O seu pico de foco costuma ser na <b>${maxWorkDay}</b>, enquanto a maior distração declarada bate na <b>${maxWastedDay}</b>.`;
       } else {
         document.getElementById('insight-focusWasted').innerHTML = `💡 <b>Note que:</b> Não há dados suficientes de Foco ou Distração para estabelecer um padrão diário.`;
       }
@@ -1126,7 +1099,8 @@
 
       buildChart('focusWastedDayChart', 'bar', weekOrderPt, [
         { label: 'Foco (h)', data: weekOrderPt.map(d=>workByDay[d]), backgroundColor: safeAccent, borderRadius: 4, datalabels: { color: '#ffffff' } },
-        { label: 'Distração (h)', data: weekOrderPt.map(d=>wastedByDay[d]), backgroundColor: sysWastedColor, borderRadius: 4, datalabels: { color: '#ffffff' } }
+        { label: 'Distração (h)', data: weekOrderPt.map(d=>wastedByDay[d]), backgroundColor: sysWastedColor, borderRadius: 4, datalabels: { color: '#ffffff' } },
+        { label: 'Não Registrado', data: weekOrderPt.map(d=>unloggedByDay[d]), backgroundColor: '#444444', borderRadius: 4, datalabels: { color: '#ffffff' } }
       ], { showLabels: true, legend: true, hideYAxis: true });
 
       let physColor = paletteColors['Saúde Física'] || paletteColors['Saúde'] || paletteColors['Health'] || '#00ffaa';
@@ -1146,8 +1120,24 @@
       buildChart('weeklyCompareChart', 'bar', validWeeks, [
         { label: 'Foco', data: validWeeks.map(w => weeklyCompareData[w].work), backgroundColor: safeAccent, datalabels: { color: '#ffffff' } },
         { label: 'Lazer', data: validWeeks.map(w => weeklyCompareData[w].leisure), backgroundColor: '#00ffaa', datalabels: { color: '#000000' } },
-        { label: 'Distração', data: validWeeks.map(w => weeklyCompareData[w].wasted), backgroundColor: sysWastedColor, datalabels: { color: '#ffffff' } }
+        { label: 'Distração', data: validWeeks.map(w => weeklyCompareData[w].wasted), backgroundColor: sysWastedColor, datalabels: { color: '#ffffff' } },
+        { label: 'Não Registrado', data: validWeeks.map(w => weeklyCompareData[w].unlogged), backgroundColor: '#444444', datalabels: { color: '#ffffff' } }
       ], { showLabels: true, legend: true, stacked: true, hideYAxis: true });
+
+      const durations = filtered.map(d => d.duration).filter(d => d > 0);
+      if (durations.length > 0) {
+        const statsHTML = `
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; color:var(--text-secondary);">
+            <div><b style="color:var(--text-primary);">Média:</b> ${mean(durations).toFixed(2)}h</div>
+            <div><b style="color:var(--text-primary);">Mediana:</b> ${median(durations).toFixed(2)}h</div>
+            <div><b style="color:var(--text-primary);">Desv. Padrão:</b> ${stdDev(durations).toFixed(2)}</div>
+            <div><b style="color:var(--text-primary);">Variância:</b> ${variance(durations).toFixed(2)}</div>
+            <div><b style="color:var(--text-primary);">Mínimo:</b> ${Math.min(...durations).toFixed(2)}h</div>
+            <div><b style="color:var(--text-primary);">Máximo:</b> ${Math.max(...durations).toFixed(2)}h</div>
+          </div>
+        `;
+        document.getElementById('stats-content').innerHTML = statsHTML;
+      }
     }
 
     function buildChart(canvasId, type, labels, datasets, config) {
