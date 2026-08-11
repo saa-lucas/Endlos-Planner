@@ -20,6 +20,14 @@ Access the latest deployed version of the **Endlos Planner Dashboard**:
 
 ---
 
+## 🆕 Latest Updates
+
+The Endlos Planner has undergone significant improvements since its initial implementation, including interface refinements, dashboard enhancements, system diagnostics, and improvements to state synchronization and configuration management.
+
+> **Note:** The screenshots in this README are currently being updated to reflect the latest deployed version.
+
+---
+
 ### 📈 Analytical Capabilities Showcase
 
 The system provides multiple interactive views to slice the data by context, daily patterns, and biological metrics:
