@@ -8,6 +8,18 @@ It acts as a relentless supervisor of your time, quantifying focus, leisure, phy
   <img src="assets/dashboard-main.png" alt="Endlos Planner General Overview" width="800">
 </div>
 
+## 🌐 Current Dashboard
+
+Access the latest deployed version of the **Endlos Planner Dashboard**:
+
+<div align="center">
+
+**[⏳ Open Endlos Planner Dashboard](https://script.google.com/macros/s/AKfycby1yGw-l90CMTFdtUk5FYGUYm-G-9Bfcx1cErJQh2k679Tlgkxn8uo9K7epEvUJtU1P/exec)**
+
+</div>
+
+---
+
 ### 📈 Analytical Capabilities Showcase
 
 The system provides multiple interactive views to slice the data by context, daily patterns, and biological metrics:
