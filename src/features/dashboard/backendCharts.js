@@ -109,7 +109,7 @@ function getSystemConfigFromPalette() {
   for (let i = 1; i < data.length; i++) {
     const ctxName = String(data[i][13] || "").trim(); // N
     const colorName = String(data[i][14] || "").trim(); // O
-    const colorHex = String(data[i][15] || "").trim(); // Q -> AQUI ESTÁ O HEX REAL DA PLANILHA!
+    const colorHex = String(data[i][15] || "").trim(); // P -> AQUI ESTÁ O HEX REAL DA PLANILHA!
     const actName = String(data[i][17] || "").trim(); // R
     let modeName = String(data[i][18] || "").trim(); // S
 

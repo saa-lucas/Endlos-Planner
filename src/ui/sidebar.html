@@ -425,7 +425,7 @@
             let modeDisplay = a.modeOverride ? a.modeOverride : `<i class="fa-solid fa-triangle-exclamation"></i> ERRO (Sem Mode)`;
             actsHtml += `<div class="tree-action-item"><div class="tree-title-group"><span class="act-title">${a.name}</span><span class="tree-mode" style="${!a.modeOverride ? 'color:var(--toast-error); font-weight:bold;' : ''}">${modeDisplay}</span></div>${isAdvanced ? `<div style="display:flex; gap:4px;"><button class="icon-btn" onclick="openActionModal('${ctx.id}', '${a.id}')"><i class="fa-solid fa-pen"></i></button><button class="icon-btn del" style="color:var(--toast-error)!important;" onclick="deleteAction('${a.id}')"><i class="fa-solid fa-trash-can"></i></button></div>` : ''}</div>`;
           });
-          if (isAdvanced) actsHtml += `<button class="icon-btn" style="margin-top:6px; font-weight:bold; font-size:10px;" onclick="openActionModal('${ctx.id}', null)"><i class="fa-solid fa-plus"></i> Adicionar Ação</button>`;
+          if (isAdvanced) actsHtml += `<button class="icon-btn" style="margin-top:6px; font-weight:bold; font-size:10px;" onclick="openActionModal('${ctx.id}', null)"><i class="fa-solid fa-plus" style="margin-right: 6px;"></i> Adicionar Ação</button>`;
           actsHtml += `</div>`; node.innerHTML = headerHtml + actsHtml; container.appendChild(node);
         });
       }

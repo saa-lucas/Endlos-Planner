@@ -4,10 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <base target="_top">
-  <!-- FONT AWESOME: Ícones minimalistas -->
+  <!-- FONT AWESOME -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <!-- SORTABLE JS -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     * { box-sizing: border-box; }
 
@@ -22,6 +24,17 @@
       --border-hover: #444444;
       --accent: #0088ff;
       --chart-grid: #333333;
+      
+      /* NOVAS CORES DO WRAPPED (DARK) */
+      --wrap-bg-main: #111111;
+      --wrap-bg-gap: #1a1a1a;
+      --wrap-bg-focus: #051525;
+      --wrap-bg-dist: #250505;
+      --wrap-bg-villain: #1a0505;
+      --wrap-bg-clean: #052515;
+      --wrap-color-danger: #ff3366;
+      --wrap-color-success: #00ffaa;
+      --wrap-color-warning: #ffbb00;
     }
 
     body.light-mode {
@@ -35,172 +48,202 @@
       --border-hover: #adb5bd;
       --accent: #0056b3;
       --chart-grid: #e9ecef;
+      
+      /* NOVAS CORES DO WRAPPED (LIGHT) */
+      --wrap-bg-main: #f0f2f5;
+      --wrap-bg-gap: #e2e6ea;
+      --wrap-bg-focus: #e6f0fa;
+      --wrap-bg-dist: #fae6ea;
+      --wrap-bg-villain: #f5dce0;
+      --wrap-bg-clean: #e6faf0;
+      --wrap-color-danger: #cc0033; 
+      --wrap-color-success: #009966; 
+      --wrap-color-warning: #d97700; 
     }
 
     body { 
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
       background-color: var(--bg-main) !important; 
       color: var(--text-primary) !important; 
-      padding: 24px; margin: 0; 
+      padding: 20px; margin: 0; 
       transition: background-color 0.3s ease, color 0.3s ease;
       overflow-x: hidden;
     }
 
     body.present-mode { padding: 10px; }
-    body.present-mode .header { margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-    body.present-mode h2 { font-size: 14px; color: var(--text-secondary); }
-    body.present-mode .kpi-grid { grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 15px; }
-    body.present-mode .chart-card { height: 440px; } 
-    body.present-mode .chart-card.wide { height: 450px; }
-    body.present-mode .chart-card.extra-wide { height: 550px; }
     
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
-    h2 { margin: 0; font-size: 22px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-primary); font-weight: 700; }
+    /* ========================================= */
+    /* CABEÇALHO UNIFICADO                       */
+    /* ========================================= */
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; gap: 10px; }
+    h2 { margin: 0; font-size: 18px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-primary); font-weight: 700; white-space: nowrap; }
     
-    .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    select { background-color: var(--bg-btn); color: var(--text-primary); border: 1px solid var(--border); padding: 10px 14px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 12px; outline: none; cursor: pointer; transition: 0.2s; }
+    .filters { display: flex; gap: 6px; flex-wrap: nowrap; align-items: center; justify-content: flex-end; flex: 1; overflow-x: auto; padding-bottom: 4px; }
+    .filters::-webkit-scrollbar { height: 4px; display: none; }
+    select { background-color: var(--bg-btn); color: var(--text-primary); border: 1px solid var(--border); padding: 6px 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 11px; outline: none; cursor: pointer; transition: 0.2s; white-space: nowrap; height: 32px;}
     select:hover { border-color: var(--accent); }
 
-    .btn-tool { background-color: var(--bg-btn); color: var(--text-secondary); border: 1px solid var(--border); padding: 10px 14px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none; display: flex; align-items: center; gap: 8px; }
+    .btn-tool { background-color: var(--bg-btn); color: var(--text-secondary); border: 1px solid var(--border); padding: 6px 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none; display: flex; align-items: center; gap: 6px; white-space: nowrap; height: 32px;}
     .btn-tool:hover { background-color: var(--bg-main); color: var(--text-primary); border-color: var(--text-secondary); }
-    .btn-primary { background-color: var(--accent); color: #fff; border: 1px solid var(--accent); }
-    .btn-primary:hover { background-color: transparent; color: var(--accent); }
-    .btn-wrapped { background-color: #9d4edd !important; color: #fff !important; border-color: #9d4edd !important; }
-    .btn-wrapped:hover { background-color: #7b2cbf !important; }
+    
+    .btn-wrapped { background-color: transparent !important; color: var(--accent) !important; border-color: var(--accent) !important; }
+    .btn-wrapped:hover { background-color: var(--accent) !important; color: #fff !important; }
 
-    #diag-main-action { margin-top: 14px; padding: 12px 16px; background: rgba(0,136,255,0.08); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; font-size: 15px; font-weight: bold; color: var(--accent); font-family: 'Courier New', monospace; letter-spacing: 0.5px; transition: color 0.3s, border-color 0.3s, background 0.3s; }
+    /* ========================================= */
+    /* PAINEL DE DIAGNÓSTICO COMPACTO            */
+    /* ========================================= */
+    .compact-summary { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 16px; background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .summary-col { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+    .summary-col:not(:last-child) { border-right: 1px dashed var(--border); padding-right: 16px; }
+    
+    .summary-verdict-title { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+    .summary-verdict-main { font-size: 14px; font-weight: bold; color: var(--text-primary); line-height: 1.2; display: flex; align-items: flex-start; gap: 6px; }
+    .summary-verdict-sub { font-size: 11px; color: var(--accent); font-style: italic; margin-top: 4px; display: flex; align-items: flex-start; gap: 6px; }
 
-    .gap-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border); }
-    .gap-item:last-child { border-bottom: none; }
-    .gap-label { font-size: 13px; color: var(--text-primary); font-family: 'Courier New', monospace; flex: 1; }
-    .gap-sublabel { font-size: 10px; color: var(--text-secondary); display: block; margin-top: 2px; }
-    .gap-hours { font-size: 13px; font-weight: bold; color: #ff3366; font-family: 'Courier New', monospace; white-space: nowrap; margin-left: 8px; }
-    .gap-bar-wrap { width: 80px; margin: 0 12px; height: 4px; background: var(--border); border-radius: 2px; flex-shrink: 0; }
-    .gap-bar { height: 100%; background: #ff3366; border-radius: 2px; transition: width 0.8s ease; }
-    .gap-rank { font-size: 11px; color: var(--text-secondary); margin-right: 8px; flex-shrink: 0; }
+    .summary-score-item { display: flex; align-items: center; gap: 12px; margin-bottom: 4px;}
+    .summary-score-item:last-child { margin-bottom: 0;}
+    .summary-score-value { font-size: 20px; font-weight: bold; font-family: 'Courier New', monospace; line-height: 1; min-width: 60px;}
+    .summary-score-value span { font-size: 11px; color: var(--text-secondary); font-weight: normal; }
+    .summary-score-details { display: flex; flex-direction: column; }
+    .summary-score-name { font-size: 10px; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px; font-weight: bold;}
+    .summary-score-desc { font-size: 11px; font-weight: bold; color: var(--text-primary); }
 
-    .gap-empty { color: var(--text-secondary); font-size: 13px; font-style: italic; text-align: center; padding: 20px 0; line-height: 1.6; }
+    .summary-text-item { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+    .summary-text-item b { color: var(--text-primary); }
+    .summary-action-item { background: var(--bg-btn); padding: 8px 12px; border-radius: 4px; border-left: 2px solid var(--accent); margin-top: 4px; font-size: 11px; color: var(--text-primary); }
 
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: background 0.3s; }
-    .kpi-title { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    /* ========================================= */
+    /* KPIs e Gráficos                           */
+    /* ========================================= */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .kpi-title { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
     .kpi-title span { cursor: help; opacity: 0.6; transition: 0.2s; font-size: 12px; margin-left: 4px; }
     .kpi-title span:hover { opacity: 1; color: var(--accent); }
-    .kpi-value { font-size: 24px; color: var(--text-primary); font-weight: 700; font-family: 'Courier New', monospace; }
-    .kpi-unit { font-size: 14px; color: var(--text-secondary); font-weight: 400; }
-    .kpi-card.danger { border-color: #ff3366; }
-    .kpi-card.danger .kpi-title { color: #ff3366; }
+    .kpi-value { font-size: 22px; color: var(--text-primary); font-weight: 700; font-family: 'Courier New', monospace; }
+    .kpi-unit { font-size: 12px; color: var(--text-secondary); font-weight: 400; }
 
-    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .chart-card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 360px; overflow: hidden; min-width: 0; transition: height 0.3s ease, background-color 0.3s ease; }
-    .chart-card.wide { grid-column: span 2; height: 380px; }
-    .chart-card.extra-wide { grid-column: span 2; height: 500px; }
-    .chart-card.auto-height { height: auto; min-height: 200px; }
-    h3 { margin-top: 0; font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; border-bottom: 1px dashed var(--border); padding-bottom: 8px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     
+    .chart-card { 
+      background-color: var(--bg-card); 
+      border: 1px solid var(--border); 
+      border-radius: 8px; 
+      padding: 16px 16px 20px 16px; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+      display: flex; 
+      flex-direction: column; 
+      height: 360px; /* Base fixa para resize puro */
+      overflow: hidden; 
+      position: relative;
+    }
+    .chart-card.extra-wide { grid-column: span 2; height: 390px; }
+    
+    /* RESIZER MAGNÉTICO */
+    .chart-resizer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 12px;
+      cursor: ns-resize;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      padding-bottom: 3px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 10;
+      background: linear-gradient(to top, rgba(0,0,0,0.2) 0%, transparent 100%);
+    }
+    body.light-mode .chart-resizer { background: linear-gradient(to top, rgba(0,0,0,0.08) 0%, transparent 100%); }
+    .chart-card:hover .chart-resizer { opacity: 1; }
+    .chart-resizer::after { content: ""; width: 30px; height: 3px; border-top: 1px solid var(--text-secondary); border-bottom: 1px solid var(--text-secondary); }
+
+    h3 { margin-top: 0; font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; width: 100%; }
+    
+    .chart-header-group { display: flex; align-items: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .chart-drag-handle { cursor: grab; color: var(--border-hover); margin-right: 8px; font-size: 13px; transition: 0.2s; }
+    .chart-drag-handle:hover { color: var(--text-primary); }
+    .chart-actions { display: flex; gap: 10px; flex-shrink: 0; margin-left: 10px; }
+    .chart-action-btn { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; transition: 0.2s; padding: 0; font-size: 12px; outline: none; }
+    .chart-action-btn:hover { color: var(--text-primary); }
+    .sortable-ghost { opacity: 0.4; background-color: var(--border); border: 1px dashed var(--accent); border-radius: 8px; }
+
     .canvas-container { position: relative; flex-grow: 1; min-height: 0; width: 100%; }
-    .scroll-wrapper { overflow-y: auto; overflow-x: hidden; flex-grow: 1; padding-right: 5px; }
+    .scroll-wrapper { overflow-y: auto; overflow-x: hidden; flex-grow: 1; padding-right: 5px; min-height: 0;} 
     .scroll-inner { position: relative; width: 100%; }
     
-    .chart-insight { font-size: 12px; color: var(--text-secondary); margin-top: 14px; font-style: italic; border-top: 1px dashed var(--border); padding-top: 10px; line-height: 1.4; display: flex; gap: 6px; align-items: flex-start; }
+    .chart-insight { font-size: 11px; color: var(--text-secondary); margin-top: 12px; font-style: italic; border-top: 1px dashed var(--border); padding-top: 10px; line-height: 1.4; display: flex; gap: 6px; align-items: flex-start; flex-shrink: 0;}
     .chart-insight b { color: var(--text-primary); font-weight: bold; font-style: normal; }
     .chart-insight.critical b { color: #ff3366; }
     .chart-insight.critical { color: #cc4455; }
 
     .loading { text-align: center; color: var(--text-secondary); font-family: monospace; margin-top: 50px; font-size: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
     .loading i { font-size: 24px; color: var(--accent); }
-    ::-webkit-scrollbar { width: 6px; } 
+    ::-webkit-scrollbar { width: 6px; height: 6px; } 
     ::-webkit-scrollbar-track { background: var(--bg-main); } 
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; } 
     ::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
 
-    .score-block { background: var(--bg-main); padding: 16px; border-radius: 8px; border: 1px solid var(--border); min-width: 220px; text-align: left; display: flex; flex-direction: column; gap: 6px; }
-    .score-title { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; display: flex; justify-content: space-between; font-weight: bold; letter-spacing: 1px; }
-    .score-title span { cursor: help; opacity: 0.6; transition: 0.2s; font-size: 14px; }
-    .score-title span:hover { opacity: 1; color: var(--accent); }
-    .score-value-row { display: flex; align-items: baseline; gap: 6px; margin: 4px 0; }
-    .score-max { font-size: 16px; color: var(--text-secondary); font-family: 'Courier New', monospace; font-weight: normal; }
-    .score-label { font-size: 12px; font-weight: bold; }
-    .score-impact { font-size: 11px; color: var(--text-secondary); font-style: italic; line-height: 1.4; border-top: 1px dashed var(--border); padding-top: 6px; margin-top: 2px; }
-
-    .exec-report-section { margin-bottom: 16px; }
-    .exec-report-section strong { color: var(--text-primary); font-size: 14px; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-    .exec-report-action-box { margin-top: 20px; padding: 16px; background: var(--bg-btn); border-radius: 8px; border-left: 4px solid var(--accent); }
-    .exec-report-action-box strong { display: flex; align-items: center; gap: 6px; }
-    .exec-report-action-box ul { margin: 8px 0 0 0; padding-left: 20px; color: var(--text-primary); font-family: 'Segoe UI', sans-serif; font-size: 14px; }
-    .exec-report-action-box li { margin-bottom: 8px; }
-    .exec-report-action-box li strong { display: inline; color: var(--accent); }
+    .gap-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--border); }
+    .gap-item:last-child { border-bottom: none; }
+    .gap-label { font-size: 12px; color: var(--text-primary); font-family: 'Courier New', monospace; flex: 1; }
+    .gap-hours { font-size: 12px; font-weight: bold; color: #ff3366; font-family: 'Courier New', monospace; white-space: nowrap; margin-left: 8px; }
+    .gap-bar-wrap { width: 80px; margin: 0 12px; height: 4px; background: var(--border); border-radius: 2px; flex-shrink: 0; }
+    .gap-bar { height: 100%; background: #ff3366; border-radius: 2px; transition: width 0.8s ease; }
+    .gap-rank { font-size: 11px; color: var(--text-secondary); margin-right: 8px; flex-shrink: 0; }
+    .gap-empty { color: var(--text-secondary); font-size: 12px; font-style: italic; text-align: center; padding: 20px 0; line-height: 1.6; }
 
     /* ESTILOS DO "WRAPPED" */
-    #wrapped-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: var(--bg-main); z-index: 10000;
-      display: none; flex-direction: column;
-      color: var(--text-primary);
-      overflow: hidden;
-    }
-    .wrapped-progress-container {
-      display: flex; gap: 6px; padding: 16px 12px;
-      position: absolute; top: 0; left: 0; width: 100%; z-index: 10003;
-    }
-    .wrapped-progress-bar {
-      flex: 1; height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden;
-    }
-    .wrapped-progress-fill {
-      height: 100%; background: #ffffff; width: 0%; transition: width 0.1s linear;
-    }
-    .wrapped-content {
-      flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
-      padding: 40px 20px; text-align: center;
-      opacity: 0; transform: scale(0.95); transition: opacity 0.5s ease, transform 0.5s ease;
-    }
+    #wrapped-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); z-index: 10000; display: none; flex-direction: column; color: var(--text-primary); overflow: hidden; }
+    .wrapped-progress-container { display: flex; gap: 6px; padding: 16px 12px; position: absolute; top: 0; left: 0; width: 100%; z-index: 10003; }
+    .wrapped-progress-bar { flex: 1; height: 3px; background: var(--border-hover); border-radius: 2px; overflow: hidden; }
+    .wrapped-progress-fill { height: 100%; background: var(--text-primary); width: 0%; transition: width 0.1s linear; }
+    .wrapped-content { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px 20px; text-align: center; opacity: 0; transform: scale(0.95); transition: opacity 0.5s ease, transform 0.5s ease; }
     .wrapped-content.active { opacity: 1; transform: scale(1); }
-    
     .wrapped-title { font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 4px; margin-bottom: 30px; }
     .wrapped-value { font-size: 16vw; font-weight: 900; line-height: 1; margin-bottom: 30px; font-family: 'Courier New', monospace; text-transform: uppercase; }
     .wrapped-desc { font-size: 20px; color: var(--text-primary); line-height: 1.5; max-width: 600px; margin: 0 auto; font-weight: 300;}
-    
     .wrapped-value.accent { color: var(--accent); }
-    .wrapped-value.danger { color: #ff3366; }
-    .wrapped-value.success { color: #00ffaa; }
-    .wrapped-value.warning { color: #ffbb00; }
-    .wrapped-value.purple { color: #9d4edd; }
-    .wrapped-value.gray { color: #888888; }
-
+    .wrapped-value.danger { color: var(--wrap-color-danger); }
+    .wrapped-value.success { color: var(--wrap-color-success); }
+    .wrapped-value.warning { color: var(--wrap-color-warning); }
     .wrapped-nav { position: absolute; top: 0; bottom: 0; width: 50%; cursor: pointer; z-index: 10001; -webkit-tap-highlight-color: transparent;}
     .wrapped-nav.left { left: 0; }
     .wrapped-nav.right { right: 0; }
-    
-    .wrapped-close { 
-      position: absolute; top: 30px; right: 20px; background: rgba(0,0,0,0.5); border: none; 
-      color: #fff; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; z-index: 10004;
-      font-size: 16px; display: flex; justify-content: center; align-items: center;
-    }
+    .wrapped-close { position: absolute; top: 30px; right: 20px; background: var(--bg-btn); border: 1px solid var(--border); color: var(--text-primary); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; z-index: 10004; font-size: 16px; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
+    .wrapped-close:hover { background: var(--bg-main); color: var(--accent); }
 
-    @media (max-width: 768px) {
-      body { padding: 16px; }
-      .header { flex-direction: column; align-items: flex-start; gap: 16px; }
-      .filters { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-      .filters select, .filters button { width: 100%; margin: 0; justify-content: center;}
-      #btn-toggle-advanced, #btn-present, #btn-theme-toggle, #btn-stats { grid-column: span 2; }
-      #btn-wrapped { grid-column: span 2; }
+    /* ========================================= */
+    /* RESPONSIVIDADE MOBILE OTIMIZADA           */
+    /* ========================================= */
+    @media (max-width: 1024px) {
+      body { padding: 12px; }
       
-      #diagnostic-panel > div:nth-of-type(1) { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
-      #diagnostic-panel > div:nth-of-type(1) > div:nth-of-type(2) { width: 100%; flex-direction: column; gap: 12px; }
-      .score-block { width: 100%; min-width: 100%; }
+      /* O CABEÇALHO E FILTROS VIRAM UM GRID ORGANIZADO NO MOBILE */
+      .header { flex-direction: column; align-items: stretch; gap: 16px; padding-bottom: 16px; }
+      h2 { text-align: center; font-size: 16px; }
+      .filters { 
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 8px; 
+        width: 100%; 
+        overflow: visible; /* Tira o scroll para o Grid agir */
+      }
+      .filters select, .filters button { 
+        width: 100%; 
+        height: 38px; /* Mais alto pra apertar com o dedo */
+        justify-content: center; 
+        margin: 0;
+      }
+      #btn-wrapped { grid-column: span 2; } /* O botão Wrapped toma as duas colunas inteiras */
 
+      .compact-summary { grid-template-columns: 1fr; gap: 16px; padding: 16px; }
+      .summary-col:not(:last-child) { border-right: none; border-bottom: 1px dashed var(--border); padding-right: 0; padding-bottom: 12px; }
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
       .charts-grid { grid-template-columns: 1fr; }
-      .chart-card.wide, .chart-card.extra-wide { grid-column: span 1; height: 420px; }
-
-      body.present-mode { padding: 8px; }
-      body.present-mode .header { flex-direction: column; align-items: flex-start; gap: 8px; padding-bottom: 8px; }
-      body.present-mode .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px; }
-      body.present-mode .chart-card { height: 350px !important; }
-      body.present-mode .chart-card.wide, body.present-mode .chart-card.extra-wide { height: 400px !important; grid-column: span 1 !important; }
-      
-      .wrapped-value { font-size: 24vw; }
-      .wrapped-desc { font-size: 16px; }
+      .chart-card.extra-wide { grid-column: span 1; min-height: 380px; }
     }
 
     .dash-footer { font-size: 10px; color: var(--text-secondary); margin-top: 40px; text-align: center; border-top: 1px dashed var(--border); padding-top: 16px; padding-bottom: 8px; }
@@ -209,132 +252,169 @@
 <body>
 
   <div class="header">
-    <h2>DIAGNÓSTICO BIDIMENSIONAL</h2>
+    <h2>DIAGNÓSTICO</h2>
     <div class="filters">
+      <!-- 4 Filtros que vão formar o 2x2 no mobile -->
       <select id="filter-year"><option value="ALL">ANO: TODOS</option></select>
       <select id="filter-month"><option value="ALL">MÊS: TODOS</option></select>
       <select id="filter-week"><option value="ALL">SEMANA: TODAS</option></select>
       <select id="filter-day"><option value="ALL">DIA: TODOS</option></select>
       
-      <button id="btn-wrapped" class="btn-tool btn-wrapped" onclick="startWrapped()"><i class="fa-solid fa-clapperboard"></i> MEU WRAPPED</button>
-      <button id="btn-stats" class="btn-tool" onclick="toggleStats()"><i class="fa-solid fa-chart-line"></i> ESTATÍSTICOS</button>
+      <!-- Botões Utilitários -->
       <button id="btn-theme-toggle" class="btn-tool" onclick="toggleThemeManual()"><i class="fa-solid fa-circle-half-stroke"></i> TEMA</button>
-      <button id="btn-toggle-advanced" class="btn-tool btn-primary" onclick="toggleAdvanced()"><i class="fa-solid fa-chart-column"></i> MODO AVANÇADO</button>
       <button id="btn-present" class="btn-tool" onclick="togglePresentMode()"><i class="fa-solid fa-expand"></i> TELA CHEIA</button>
+      <button id="btn-wrapped" class="btn-tool btn-wrapped" onclick="startWrapped()"><i class="fa-solid fa-clapperboard"></i> MEU WRAPPED</button>
     </div>
   </div>
 
-  <div id="loading-msg" class="loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Processando os seus logs...</div>
+  <div id="loading-msg" class="loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Processando logs...</div>
 
   <div id="dashboard-content" style="display:none;">
     
-    <div id="diagnostic-panel" style="display:block; background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 6px; padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px dashed var(--border); padding-bottom: 16px; margin-bottom: 16px; flex-wrap: wrap; gap: 20px;">
-        <div style="flex: 1; min-width: 250px;">
-          <div style="font-size: 11px; color: var(--text-secondary); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;">Veredito do Sistema</div>
-          <div id="diag-status" style="font-size: 22px; font-weight: bold; color: var(--text-primary); line-height: 1.3;"><i class="fa-solid fa-microchip"></i> Analisando Padrões...</div>
-          <div id="diag-main-action"><i class="fa-solid fa-arrow-right"></i> Calculando próximo passo...</div>
-        </div>
-        <div style="display: flex; gap: 16px; flex-wrap: wrap; flex: 2;">
-          <div class="score-block">
-            <div class="score-title">Performance (Log) <span title="Qualidade da sua execução calculada estritamente sobre o tempo que você documentou."><i class="fa-solid fa-circle-info"></i></span></div>
-            <div class="score-value-row">
-              <div id="diag-score" style="font-size: 36px; font-weight: bold; color: var(--accent); font-family: 'Courier New', monospace;">0</div>
-              <div class="score-max">/ 100</div>
-            </div>
-            <div id="diag-score-label" class="score-label">Calculando...</div>
-            <div id="diag-score-impact" class="score-impact">Lendo impacto na rotina...</div>
+    <!-- 👇 PAINEL COMPACTO 👇 -->
+    <div class="compact-summary">
+      <div class="summary-col">
+        <div class="summary-verdict-title">Veredito do Sistema</div>
+        <div id="diag-status" class="summary-verdict-main"><i class="fa-solid fa-microchip"></i> Analisando...</div>
+        <div id="diag-main-action" class="summary-verdict-sub"><i class="fa-solid fa-arrow-right"></i> Calculando...</div>
+      </div>
+      
+      <div class="summary-col">
+        <div class="summary-score-item">
+          <div id="diag-perf-val" class="summary-score-value" style="color: var(--accent);">0<span>/100</span></div>
+          <div class="summary-score-details">
+            <div class="summary-score-name">Performance (Log)</div>
+            <div id="diag-perf-desc" class="summary-score-desc">Calculando...</div>
           </div>
-          <div class="score-block">
-            <div class="score-title">Base Biológica <span title="Capacidade do seu corpo sustentar a carga mental. Baseado em Sono, Saúde Física e Mental."><i class="fa-solid fa-circle-info"></i></span></div>
-            <div class="score-value-row">
-              <div id="diag-health" style="font-size: 36px; font-weight: bold; color: #00ffaa; font-family: 'Courier New', monospace;">0</div>
-              <div class="score-max">/ 100</div>
-            </div>
-            <div id="diag-health-label" class="score-label">Calculando...</div>
-            <div id="diag-health-impact" class="score-impact">Lendo capacidade energética...</div>
+        </div>
+        <div class="summary-score-item">
+          <div id="diag-health-val" class="summary-score-value" style="color: #00ffaa;">0<span>/100</span></div>
+          <div class="summary-score-details">
+            <div class="summary-score-name">Base Biológica</div>
+            <div id="diag-health-desc" class="summary-score-desc">Calculando...</div>
           </div>
         </div>
       </div>
-      <div id="diagnostic-text" style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; font-family: 'Courier New', monospace;">
-        <i class="fa-solid fa-circle-notch fa-spin"></i> Carregando...
+      
+      <div class="summary-col" style="border-right: none;" id="diagnostic-text"></div>
+    </div>
+    <!-- 👆 FIM DO PAINEL COMPACTO 👆 -->
+
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-title">Horas Totais</div><div class="kpi-value" id="kpi-total">0<span class="kpi-unit">h</span></div></div>
+      <div class="kpi-card">
+        <div class="kpi-title">Cobertura <span title="Tempo com registro / período monitorado (excluindo Sono)"><i class="fa-solid fa-circle-info"></i></span></div>
+        <div class="kpi-value" id="kpi-coverage">0<span class="kpi-unit">%</span></div>
       </div>
+      <div class="kpi-card"><div class="kpi-title">Trabalho Focado</div><div class="kpi-value" id="kpi-work" style="color: #0088ff;">0<span class="kpi-unit">h</span></div></div>
+      <div class="kpi-card"><div class="kpi-title">Lazer</div><div class="kpi-value" id="kpi-leisure" style="color: #00ffaa;">0<span class="kpi-unit">h</span></div></div>
+      <div class="kpi-card"><div class="kpi-title">Distração Real</div><div class="kpi-value" id="kpi-wasted" style="color: #ff3366;">0<span class="kpi-unit">h</span></div></div>
+      <div class="kpi-card"><div class="kpi-title">Sono (Média)</div><div class="kpi-value" id="kpi-sleep-med">0<span class="kpi-unit">h</span></div></div>
     </div>
 
-    <div id="advanced-section" style="display: none;">
-      <div class="kpi-grid">
-        <div class="kpi-card"><div class="kpi-title">Horas Totais</div><div class="kpi-value" id="kpi-total">0<span class="kpi-unit">h</span></div></div>
-        <div class="kpi-card">
-          <div class="kpi-title">Cobertura <span title="Tempo com registro / período monitorado"><i class="fa-solid fa-circle-info"></i></span></div>
-          <div class="kpi-value" id="kpi-coverage" style="color: #ffffff;">0<span class="kpi-unit">%</span></div>
+    <!-- GRID DE GRÁFICOS (Ordenável via SortableJS) -->
+    <div class="charts-grid">
+      
+      <div class="chart-card">
+        <h3>
+          <span class="chart-header-group"><i class="fa-solid fa-grip-vertical chart-drag-handle" title="Arraste para mover"></i> <i class="fa-solid fa-globe" style="margin-right: 8px;"></i> Tempo por Contexto</span>
+          <div class="chart-actions">
+            <button class="chart-action-btn" id="btn-toggle-context" onclick="toggleContextChart()" title="Alternar Visualização"><i class="fa-solid fa-chart-bar"></i></button>
+          </div>
+        </h3>
+        <div class="scroll-wrapper" id="context-scroll-wrapper" style="display:none;">
+          <div class="scroll-inner" id="context-scroll-area">
+            <canvas id="contextChartBar"></canvas>
+          </div>
         </div>
-        <div class="kpi-card"><div class="kpi-title">Trabalho Focado</div><div class="kpi-value" id="kpi-work" style="color: #0088ff;">0<span class="kpi-unit">h</span></div></div>
-        <div class="kpi-card"><div class="kpi-title">Lazer</div><div class="kpi-value" id="kpi-leisure" style="color: #00ffaa;">0<span class="kpi-unit">h</span></div></div>
-        <div class="kpi-card"><div class="kpi-title">Distração Real</div><div class="kpi-value" id="kpi-wasted" style="color: #ff3366;">0<span class="kpi-unit">h</span></div></div>
-        <div class="kpi-card"><div class="kpi-title">Sono (Média)</div><div class="kpi-value" id="kpi-sleep-med">0<span class="kpi-unit">h</span></div></div>
+        <div class="canvas-container" id="context-doughnut-wrapper">
+          <canvas id="contextChart"></canvas>
+        </div>
+        <div id="insight-context" class="chart-insight"></div>
+        <div class="chart-resizer"></div>
+      </div>
+      
+      <div class="chart-card">
+        <h3>
+          <span class="chart-header-group"><i class="fa-solid fa-grip-vertical chart-drag-handle" title="Arraste para mover"></i> <i class="fa-solid fa-list-check" style="margin-right: 8px;"></i> Visão de Ações</span>
+          <div class="chart-actions">
+            <button class="chart-action-btn" id="btn-toggle-action" onclick="toggleActionChart()" title="Alternar Visualização"><i class="fa-solid fa-chart-pie"></i></button>
+          </div>
+        </h3>
+        <div class="scroll-wrapper" id="action-scroll-wrapper">
+          <div class="scroll-inner" id="action-scroll-area">
+            <canvas id="actionChart"></canvas>
+          </div>
+        </div>
+        <div class="canvas-container" id="action-doughnut-wrapper" style="display:none;">
+          <canvas id="actionChartDoughnut"></canvas>
+        </div>
+        <div id="insight-action" class="chart-insight"></div>
+        <div class="chart-resizer"></div>
       </div>
 
-      <div class="charts-grid">
-        <div class="chart-card">
-          <h3><i class="fa-solid fa-globe"></i> Tempo por Contexto (Visão Global)</h3>
-          <div class="canvas-container"><canvas id="contextChart"></canvas></div>
-          <div id="insight-context" class="chart-insight"></div>
+      <div class="chart-card">
+        <h3 id="gap-card-title">
+          <span class="chart-header-group"><i class="fa-solid fa-grip-vertical chart-drag-handle" title="Arraste para mover"></i> <i class="fa-solid fa-stopwatch" style="margin-right: 8px;"></i> Top Distrações</span>
+        </h3>
+        <div id="gap-list" style="flex-grow:1;">
+          <div class="gap-empty"><i class="fa-solid fa-circle-notch fa-spin"></i> Calculando...</div>
         </div>
-        
-        <div class="chart-card">
-          <h3><i class="fa-solid fa-list-check"></i> Visão Geral de Ações (Apenas Documentado)</h3>
-          <div class="scroll-wrapper">
-            <div class="scroll-inner" id="action-scroll-area">
-              <canvas id="actionChart"></canvas>
-            </div>
-          </div>
-          <div id="insight-action" class="chart-insight"></div>
-        </div>
-
-        <div class="chart-card auto-height">
-          <h3 id="gap-card-title"><i class="fa-solid fa-stopwatch"></i> Top Distrações (Sabotagem Declarada)</h3>
-          <div id="gap-list" style="flex-grow:1;">
-            <div class="gap-empty"><i class="fa-solid fa-circle-notch fa-spin"></i> Calculando...</div>
-          </div>
-          <div id="insight-gaps" class="chart-insight"></div>
-        </div>
-        
-        <div class="chart-card">
-          <h3><i class="fa-solid fa-calendar-day"></i> Padrão Diário: Foco, Distração e Não Registrado</h3>
-          <div class="canvas-container"><canvas id="focusWastedDayChart"></canvas></div>
-          <div id="insight-focusWasted" class="chart-insight"></div>
-        </div>
-
-        <div class="chart-card">
-          <h3><i class="fa-solid fa-utensils"></i> Refeições: Frequência e Duração</h3>
-          <div class="canvas-container"><canvas id="mealChart"></canvas></div>
-          <div id="insight-meal" class="chart-insight"></div>
-        </div>
-
-        <div class="chart-card">
-          <h3><i class="fa-solid fa-heart-pulse"></i> Distribuição de Saúde</h3>
-          <div class="canvas-container"><canvas id="healthChart"></canvas></div>
-          <div id="insight-health" class="chart-insight"></div>
-        </div>
-
-        <div class="chart-card">
-          <h3><i class="fa-solid fa-moon"></i> Impacto: Descompressão vs Sono</h3>
-          <div class="canvas-container"><canvas id="sleepUnwindChart"></canvas></div>
-          <div id="insight-sleepUnwind" class="chart-insight"></div>
-        </div>
-
-        <div class="chart-card extra-wide">
-          <h3><i class="fa-solid fa-timeline"></i> Comparativo Semanal: Composição do Tempo</h3>
-          <div class="canvas-container"><canvas id="weeklyCompareChart"></canvas></div>
-          <div id="insight-weekly" class="chart-insight"></div>
-        </div>
+        <div id="insight-gaps" class="chart-insight"></div>
       </div>
-    </div>
-    
-    <div id="stats-section" style="display:none; margin-top:20px;">
-      <div class="chart-card auto-height">
-        <h3><i class="fa-solid fa-chart-pie"></i> Estatísticas Gerais</h3>
-        <div id="stats-content" style="font-family: 'Courier New', monospace; font-size:13px; line-height:1.6;"></div>
+      
+      <div class="chart-card">
+        <h3>
+          <span class="chart-header-group"><i class="fa-solid fa-grip-vertical chart-drag-handle" title="Arraste para mover"></i> <i class="fa-solid fa-calendar-day" style="margin-right: 8px;"></i> Foco e Distração (Dia)</span>
+        </h3>
+        <div class="canvas-container"><canvas id="focusWastedDayChart"></canvas></div>
+        <div id="insight-focusWasted" class="chart-insight"></div>
+        <div class="chart-resizer"></div>
+      </div>
+
+      <div class="chart-card">
+        <h3>
+          <span class="chart-header-group"><i class="fa-solid fa-grip-vertical chart-drag-handle" title="Arraste para mover"></i> <i class="fa-solid fa-utensils" style="margin-right: 8px;"></i> Refeições</span>
+        </h3>
+        <div class="canvas-container"><canvas id="mealChart"></canvas></div>
+        <div id="insight-meal" class="chart-insight"></div>
+        <div class="chart-resizer"></div>
+      </div>
+
+      <div class="chart-card">
+        <h3>
+          <span class="chart-header-group"><i class="fa-solid fa-grip-vertical chart-drag-handle" title="Arraste para mover"></i> <i class="fa-solid fa-heart-pulse" style="margin-right: 8px;"></i> Saúde</span>
+        </h3>
+        <div class="canvas-container"><canvas id="healthChart"></canvas></div>
+        <div id="insight-health" class="chart-insight"></div>
+        <div class="chart-resizer"></div>
+      </div>
+
+      <div class="chart-card">
+        <h3>
+          <span class="chart-header-group"><i class="fa-solid fa-grip-vertical chart-drag-handle" title="Arraste para mover"></i> <i class="fa-solid fa-moon" style="margin-right: 8px;"></i> Sono e Unwind</span>
+        </h3>
+        <div class="canvas-container"><canvas id="sleepUnwindChart"></canvas></div>
+        <div id="insight-sleepUnwind" class="chart-insight"></div>
+        <div class="chart-resizer"></div>
+      </div>
+
+      <div class="chart-card extra-wide">
+        <h3>
+          <span class="chart-header-group"><i class="fa-solid fa-grip-vertical chart-drag-handle" title="Arraste para mover"></i> <i class="fa-solid fa-chart-line" style="margin-right: 8px;"></i> Evolução da Cobertura</span>
+        </h3>
+        <div class="canvas-container"><canvas id="coverageEvolutionChart"></canvas></div>
+        <div id="insight-coverageEvolution" class="chart-insight"></div>
+        <div class="chart-resizer"></div>
+      </div>
+
+      <div class="chart-card extra-wide">
+        <h3>
+          <span class="chart-header-group"><i class="fa-solid fa-grip-vertical chart-drag-handle" title="Arraste para mover"></i> <i class="fa-solid fa-timeline" style="margin-right: 8px;"></i> Comparativo Semanal</span>
+        </h3>
+        <div class="canvas-container"><canvas id="weeklyCompareChart"></canvas></div>
+        <div id="insight-weekly" class="chart-insight"></div>
+        <div class="chart-resizer"></div>
       </div>
     </div>
     
@@ -365,6 +445,63 @@
     let globalActContextMap = {};
     let isLightMode = false; 
 
+    // Toggles de UI
+    let contextChartType = 'doughnut';
+    let actionChartType = 'bar';
+
+    window.toggleContextChart = function() {
+      contextChartType = contextChartType === 'doughnut' ? 'bar' : 'doughnut';
+      document.getElementById('btn-toggle-context').innerHTML = contextChartType === 'doughnut' ? '<i class="fa-solid fa-chart-bar"></i>' : '<i class="fa-solid fa-chart-pie"></i>';
+      updateDashboard(); 
+    }
+
+    window.toggleActionChart = function() {
+      actionChartType = actionChartType === 'bar' ? 'doughnut' : 'bar';
+      document.getElementById('btn-toggle-action').innerHTML = actionChartType === 'bar' ? '<i class="fa-solid fa-chart-pie"></i>' : '<i class="fa-solid fa-chart-bar"></i>';
+      updateDashboard();
+    }
+
+    // ========================================================
+    // RESIZER MAGNÉTICO (Snap alinhado em passos de 60px)
+    // ========================================================
+    let isResizing = false;
+    let currentCard = null;
+    let startY = 0;
+    let startHeight = 0;
+
+    document.addEventListener('mousedown', function(e) {
+      let resizer = e.target.closest('.chart-resizer');
+      if (resizer) {
+        isResizing = true;
+        currentCard = resizer.closest('.chart-card');
+        startY = e.clientY;
+        startHeight = currentCard.offsetHeight;
+        document.body.style.cursor = 'ns-resize';
+        e.preventDefault();
+      }
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      if (!isResizing) return;
+      let dy = e.clientY - startY;
+      let newHeight = startHeight + dy;
+      
+      // Trava de 60px para não desalinhar vizinhos
+      newHeight = Math.round(newHeight / 60) * 60;
+      newHeight = Math.max(300, newHeight); 
+      
+      currentCard.style.height = newHeight + 'px'; 
+      Object.values(charts).forEach(c => c.resize());
+    });
+
+    document.addEventListener('mouseup', function() {
+      if (isResizing) {
+        isResizing = false;
+        currentCard = null;
+        document.body.style.cursor = '';
+      }
+    });
+
     const AMBIENTE_ATUAL = '<?= typeof ambiente !== "undefined" ? ambiente : "WEBAPP" ?>';
 
     const dayMap = { 
@@ -372,9 +509,6 @@
       'Seg': 'Seg', 'Ter': 'Ter', 'Qua': 'Qua', 'Qui': 'Qui', 'Sex': 'Sex', 'Sáb': 'Sáb', 'Dom': 'Dom'
     };
 
-    /* ========================================================
-       SISTEMA DE ORDENAÇÃO CRONOLÓGICA (REGEX)
-       ======================================================== */
     const monthOrderMap = {
       'jan': 1, 'fev': 2, 'feb': 2, 'mar': 3, 'abr': 4, 'apr': 4,
       'mai': 5, 'may': 5, 'jun': 6, 'jul': 7, 'ago': 8, 'aug': 8,
@@ -405,26 +539,10 @@
       });
     }
 
-    /* ========================================================
-       FUNÇÕES ESTATÍSTICAS
-       ======================================================== */
     function mean(arr) { return arr.length === 0 ? 0 : arr.reduce((a,b)=>a+b,0) / arr.length; }
-    function median(arr) {
-      const sorted = [...arr].sort((a,b)=>a-b);
-      const mid = Math.floor(sorted.length/2);
-      return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid-1] + sorted[mid]) / 2;
-    }
-    function variance(arr) { const m = mean(arr); return mean(arr.map(x => (x - m) ** 2)); }
-    function stdDev(arr) { return Math.sqrt(variance(arr)); }
-
-    function toggleStats() {
-      const el = document.getElementById('stats-section');
-      el.style.display = el.style.display === 'none' ? 'block' : 'none';
-      if (el.style.display === 'block') { setTimeout(() => { el.scrollIntoView({ behavior: 'smooth' }); }, 50); }
-    }
 
     /* ========================================================
-       MOTOR DO WRAPPED (STORY MODE)
+       MOTOR DO WRAPPED (STORY MODE LIMPO)
        ======================================================== */
     let wrappedSlides = [];
     let currentWrappedIndex = 0;
@@ -441,109 +559,55 @@
       const wastedPct = currentMetrics.totalH > 0 ? ((currentMetrics.wastedH / currentMetrics.totalH) * 100).toFixed(0) : 0;
       const topCtx = currentMetrics.topContext || "Nada";
       
-      const wastedActions = Object.keys(globalActData).filter(a => globalActContextMap[a] === 'Distração' && a.toLowerCase() !== 'sem registro').sort((a, b) => globalActData[b] - globalActData[a]);
+      const wastedActions = Object.keys(globalActData).filter(a => globalActContextMap[a] === 'Distração' && !['sem registro', 'start', 'end', 'início', 'fim'].includes(a.toLowerCase())).sort((a, b) => globalActData[b] - globalActData[a]);
       const topWastedAction = wastedActions.length > 0 ? wastedActions[0] : null;
       const topWastedH = wastedActions.length > 0 ? globalActData[topWastedAction] : currentMetrics.wastedH;
 
       const verdict = getSystemVerdict(scores.performance, scores.health, currentMetrics.coverage, currentMetrics.wastedH, currentMetrics.workH);
       
       wrappedSlides = [
-        {
-          title: "O Seu Tempo",
-          value: currentMetrics.totalH.toFixed(1) + "h",
-          colorClass: "",
-          desc: "Este é o total de horas que você viveu no período selecionado.",
-          bgColor: "#111111"
-        }
+        { title: "O Seu Tempo", value: currentMetrics.totalH.toFixed(1) + "h", colorClass: "", desc: "Este é o total de horas que você viveu no período selecionado.", bgColor: "var(--wrap-bg-main)" }
       ];
 
       if (currentMetrics.coverage < 70) {
-        wrappedSlides.push({
-          title: "Lacuna de Informação",
-          value: (100 - currentMetrics.coverage).toFixed(0) + "%",
-          colorClass: "gray",
-          desc: `O tempo passou, mas o Endlos não sabe o que aconteceu. Você teve ${currentMetrics.unloggedH.toFixed(1)}h de período não observado.`,
-          bgColor: "#1a1a1a"
-        });
+        wrappedSlides.push({ title: "Lacuna de Informação", value: (100 - currentMetrics.coverage).toFixed(0) + "%", colorClass: "gray", desc: `O tempo passou, mas o Endlos não sabe o que aconteceu. Você teve ${currentMetrics.unloggedH.toFixed(1)}h de período não observado.`, bgColor: "var(--wrap-bg-gap)" });
       }
 
-      wrappedSlides.push({
-          title: "Foco (Documentado)",
-          value: topCtx,
-          colorClass: "accent",
-          desc: "Tirando o tempo não documentado, este foi o seu principal polo gravitacional de energia.",
-          bgColor: "#051525"
-      });
+      wrappedSlides.push({ title: "Foco (Documentado)", value: topCtx, colorClass: "accent", desc: "Tirando o tempo não documentado, este foi o seu principal polo gravitacional de energia.", bgColor: "var(--wrap-bg-focus)" });
 
       if (currentMetrics.wastedH > 0) {
-        wrappedSlides.push({
-          title: "A Distração Real",
-          value: currentMetrics.wastedH.toFixed(1) + "h",
-          colorClass: "danger",
-          desc: `Isto representa ${wastedPct}% da sua rotina total. Tempo explicitamente declarado como distração.`,
-          bgColor: "#250505"
-        });
+        wrappedSlides.push({ title: "A Distração Real", value: currentMetrics.wastedH.toFixed(1) + "h", colorClass: "danger", desc: `Isto representa ${wastedPct}% da sua rotina total. Tempo explicitamente declarado como distração.`, bgColor: "var(--wrap-bg-dist)" });
         
         if (wastedActions.length > 0 && topWastedAction) {
-           wrappedSlides.push({
-            title: "O Vilão Declarado",
-            value: topWastedAction,
-            colorClass: "danger",
-            desc: `Sozinha, esta atividade assumida roubou-lhe ${topWastedH.toFixed(1)}h. Já pensou num bloqueio?`,
-            bgColor: "#1a0505"
-          });
+           wrappedSlides.push({ title: "O Vilão Declarado", value: topWastedAction, colorClass: "danger", desc: `Sozinha, esta atividade assumida roubou-lhe ${topWastedH.toFixed(1)}h. Já pensou num bloqueio?`, bgColor: "var(--wrap-bg-villain)" });
         }
       } else {
-        wrappedSlides.push({
-          title: "Foco Blindado",
-          value: "Limpo",
-          colorClass: "success",
-          desc: "Nenhuma distração real mapeada. O seu sistema documentado está limpo.",
-          bgColor: "#052515"
-        });
+        wrappedSlides.push({ title: "Foco Blindado", value: "Limpo", colorClass: "success", desc: "Nenhuma distração real mapeada. O seu sistema documentado está limpo.", bgColor: "var(--wrap-bg-clean)" });
       }
 
-      wrappedSlides.push({
-        title: "Nota de Performance",
-        value: scores.performance + "/100",
-        colorClass: scores.performance >= 80 ? "success" : (scores.performance >= 60 ? "warning" : "danger"),
-        desc: `${verdict.replace(/<[^>]*>?/gm, '')}.<br><br>Feche o Wrapped e encare o relatório no painel.`, // Remove tags HTML para o wrapped
-        bgColor: "#111111"
-      });
+      wrappedSlides.push({ title: "Nota de Performance", value: scores.performance + "/100", colorClass: scores.performance >= 80 ? "success" : (scores.performance >= 60 ? "warning" : "danger"), desc: `${verdict.replace(/<[^>]*>?/gm, '')}.<br><br>Feche o Wrapped e encare o relatório no painel.`, bgColor: "var(--wrap-bg-main)" });
 
       const overlay = document.getElementById('wrapped-overlay');
       const barsContainer = document.getElementById('wrapped-bars');
-      
       barsContainer.innerHTML = wrappedSlides.map(() => `<div class="wrapped-progress-bar"><div class="wrapped-progress-fill"></div></div>`).join('');
-      
       currentWrappedIndex = 0;
       overlay.style.display = 'flex';
       document.body.style.overflow = 'hidden';
-
       showWrappedSlide(currentWrappedIndex);
     }
 
     function showWrappedSlide(index) {
-      if (index >= wrappedSlides.length) {
-        closeWrapped();
-        return;
-      }
+      if (index >= wrappedSlides.length) { closeWrapped(); return; }
       if (index < 0) index = 0;
       currentWrappedIndex = index;
-
       const slide = wrappedSlides[index];
       const contentEl = document.getElementById('wrapped-content');
       const overlay = document.getElementById('wrapped-overlay');
-      
       contentEl.classList.remove('active');
       
       setTimeout(() => {
         overlay.style.backgroundColor = slide.bgColor;
-        contentEl.innerHTML = `
-          <div class="wrapped-title">${slide.title}</div>
-          <div class="wrapped-value ${slide.colorClass}">${slide.value}</div>
-          <div class="wrapped-desc">${slide.desc}</div>
-        `;
+        contentEl.innerHTML = `<div class="wrapped-title">${slide.title}</div><div class="wrapped-value ${slide.colorClass}">${slide.value}</div><div class="wrapped-desc">${slide.desc}</div>`;
         contentEl.classList.add('active');
       }, 100);
 
@@ -559,7 +623,6 @@
           fill.style.width = '100%';
         }
       });
-
       clearTimeout(wrappedTimer);
       wrappedTimer = setTimeout(nextWrappedSlide, SLIDE_DURATION);
     }
@@ -572,9 +635,6 @@
       document.body.style.overflow = 'auto';
     }
 
-    /* ========================================================
-       CÉREBRO DO TEMA
-       ======================================================== */
     function applyTheme(isLight) {
       const body = document.body;
       if (isLight) { body.classList.add('light-mode'); isLightMode = true; } 
@@ -603,29 +663,42 @@
       }
     }
 
-    if (AMBIENTE_ATUAL === 'PLANILHA') setInterval(syncDashboardTheme, 2000); 
-    window.onload = function() { syncDashboardTheme(); };
-
-    /* ========================================================
-       RESTO DA LÓGICA DO DASHBOARD
-       ======================================================== */
-    function toggleAdvanced() {
-      const el = document.getElementById('advanced-section');
-      const btn = document.getElementById('btn-toggle-advanced');
-      if (el.style.display === 'none') {
-        el.style.display = 'block';
-        btn.innerHTML = '<i class="fa-solid fa-chart-simple"></i> MODO SIMPLES';
-      } else {
-        el.style.display = 'none';
-        btn.innerHTML = '<i class="fa-solid fa-chart-column"></i> MODO AVANÇADO';
+    window.onload = function() { 
+      syncDashboardTheme(); 
+      const grid = document.querySelector('.charts-grid');
+      if(grid && typeof Sortable !== 'undefined') {
+        new Sortable(grid, {
+          animation: 150,
+          handle: '.chart-drag-handle', 
+          ghostClass: 'sortable-ghost',
+        });
       }
-      setTimeout(() => { Object.values(charts).forEach(chart => chart.resize()); }, 50);
-    }
-    
+    };
+    if (AMBIENTE_ATUAL === 'PLANILHA') setInterval(syncDashboardTheme, 2000); 
+
     function togglePresentMode() {
       const isPresenting = document.body.classList.toggle('present-mode');
       const btn = document.getElementById('btn-present');
       btn.innerHTML = isPresenting ? '<i class="fa-solid fa-compress"></i> SAIR' : '<i class="fa-solid fa-expand"></i> TELA CHEIA';
+      
+      try {
+        if (isPresenting) {
+          if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+          } else if (document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen();
+          }
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          }
+        }
+      } catch (e) {
+        console.log("Modo tela cheia nativo bloqueado no ambiente atual.");
+      }
+
       const canvases = document.querySelectorAll('canvas');
       canvases.forEach(c => c.style.display = 'none');
       setTimeout(() => {
@@ -661,24 +734,14 @@
       if (score >= 50) return "Desperdício Elevado";
       return "Foco Comprometido";
     }
-    function getPerfImpact(score) {
-      if (score >= 85) return "Ação alinhada com os seus objetivos (dentro do que foi mapeado).";
-      if (score >= 70) return "Bons resultados, mas com margem de fuga real.";
-      if (score >= 50) return "A procrastinação real está a atrasar a sua evolução.";
-      return "O seu tempo documentado está a ser engolido por distrações.";
-    }
+
     function getHealthVerdict(score) {
       if (score >= 85) return "Motor Otimizado";
       if (score >= 70) return "Base Estável";
       if (score >= 50) return "Risco de Fadiga";
       return "Base Colapsada";
     }
-    function getHealthImpact(score) {
-      if (score >= 85) return "Energia alta para sustentar carga mental.";
-      if (score >= 70) return "Corpo sustenta a rotina sem sobras.";
-      if (score >= 50) return "O cansaço vai começar a sabotar o seu foco.";
-      return "Risco alto de burnout ou quebra cognitiva iminente.";
-    }
+
     function getSystemVerdict(perf, health, coverage, wasted, work) {
       if (coverage < 50) return "<i class='fa-solid fa-eye-slash'></i> BAIXA CONFIABILIDADE DOS DADOS";
       if (wasted > work) return "<i class='fa-solid fa-triangle-exclamation'></i> ALERTA: AUTOSSABOTAGEM DETETADA";
@@ -689,111 +752,41 @@
     }
 
     function getMainAction(m, scores) {
-      if (m.coverage < 50) return "<i class='fa-solid fa-arrow-right'></i> Preencha o seu dia. Você não enxerga o suficiente para tomar decisões.";
-      if (m.wastedH > m.workH) return "<i class='fa-solid fa-arrow-right'></i> Corte brutal de distrações reais amanhã. Esse é o gargalo visível.";
-      if (scores.health < 60) return "<i class='fa-solid fa-arrow-right'></i> Corrija sono e energia antes de tentar performar.";
-      if (scores.performance < 70) return "<i class='fa-solid fa-arrow-right'></i> Reduzir distração declarada é o maior ganho imediato.";
-      if (scores.performance >= 80 && scores.health >= 80) return "<i class='fa-solid fa-arrow-right'></i> Sistema sólido. Aumente a carga de trabalho.";
-      return "<i class='fa-solid fa-arrow-right'></i> Mantenha consistência. O padrão está se formando.";
+      if (m.coverage < 50) return "<i class='fa-solid fa-arrow-right'></i> Preencha o dia. Observação cega.";
+      if (m.wastedH > m.workH) return "<i class='fa-solid fa-arrow-right'></i> Corte brutal de distrações reais.";
+      if (scores.health < 60) return "<i class='fa-solid fa-arrow-right'></i> Corrija sono e energia.";
+      if (scores.performance < 70) return "<i class='fa-solid fa-arrow-right'></i> Reduzir distração declarada imediata.";
+      if (scores.performance >= 80 && scores.health >= 80) return "<i class='fa-solid fa-arrow-right'></i> Sistema sólido. Aumente a carga.";
+      return "<i class='fa-solid fa-arrow-right'></i> Mantenha consistência.";
     }
 
-    function buildSmartInsights(m, scores) {
+    function buildCompactInsights(m, scores) {
       let html = "";
       
-      html += `<div class="exec-report-section"><strong><i class="fa-solid fa-location-dot"></i> Realidade Bidimensional:</strong>`;
-      if (m.coverage < 60) {
-        html += `Você performou a ${scores.performance}/100, mas a sua cobertura de dados é de apenas ${m.coverage.toFixed(0)}%. Você voa às cegas em boa parte do tempo. A prioridade não é performance, é documentar.`;
-      } else {
-        html += `Com uma boa cobertura de ${m.coverage.toFixed(0)}%, sabemos que o seu sistema dedicou ${m.workH.toFixed(1)}h ao avanço e perdeu ${m.wastedH.toFixed(1)}h em distrações reais assumidas.`;
-      }
-      html += `</div>`;
+      let realText = m.coverage < 60 
+        ? `Você performou a <b>${scores.performance}/100</b>, mas a sua cobertura de dados é de apenas <b>${m.coverage.toFixed(0)}%</b>. Você voa às cegas em boa parte do tempo. A prioridade não é performance, é documentar.` 
+        : `Com uma boa cobertura de <b>${m.coverage.toFixed(0)}%</b>, sabemos que o sistema dedicou ${m.workH.toFixed(1)}h ao avanço e perdeu ${m.wastedH.toFixed(1)}h em distrações reais assumidas.`;
+      
+      let energyText = scores.health < 60 
+        ? `O corpo não sustenta a ambição. Com ${m.sleepMed.toFixed(1)}h de sono e pouca ativação, falta combustível biológico real.` 
+        : (scores.health < 80 ? `Funcional, mas sem margem. Qualquer aumento de carga vai derrubar o foco.` : `A base está forte. Tem energia suficiente para sustentar alta performance.`);
 
-      html += `<div class="exec-report-section"><strong><i class="fa-solid fa-battery-half"></i> Base Energética:</strong>`;
-      if (scores.health < 60) {
-        html += `O seu corpo não sustenta a ambição. Com ${m.sleepMed.toFixed(1)}h de sono e pouca ativação, falta combustível biológico real.`;
-      } else if (scores.health < 80) {
-        html += `Funcional, mas sem margem. Qualquer aumento de carga vai derrubar o foco.`;
-      } else {
-        html += `A sua base está forte. Tem energia suficiente para sustentar alta performance.`;
-      }
-      html += `</div>`;
+      let actionText = "";
+      if (m.coverage < 60) actionText = `<b>Aumente a Observação:</b> O seu foco principal amanhã é preencher o planner e eliminar a área de "Não Registrado".`;
+      else if (m.wastedH > m.workH) actionText = `<b>Corte imediato:</b> Elimine a principal fonte de distração declarada amanhã.`;
+      else if (scores.performance >= 80 && scores.health >= 80) actionText = `<b>Escalar:</b> Aumente a dificuldade do seu trabalho. Você tem cobertura e estrutura para crescer.`;
+      else actionText = `<b>Otimização Fina:</b> O seu sistema está em equilíbrio. Busque otimizar o tempo documentado de lazer vs. distração pura.`;
 
-      html += `<div class="exec-report-action-box"><strong><i class="fa-solid fa-bullseye"></i> O que você precisa fazer agora:</strong><ul>`;
-      if (m.coverage < 60) {
-        html += `<li><strong>Aumente a Observação:</strong> O seu foco principal amanhã é preencher o planner e eliminar a área de "Não Registrado".</li>`;
-      } else if (m.wastedH > m.workH) {
-        html += `<li><strong>Corte imediato:</strong> Elimine a principal fonte de distração declarada amanhã. Não apenas reduza, remova completamente.</li>`;
-      } else if (scores.performance >= 80 && scores.health >= 80) {
-        html += `<li><strong>Escalar:</strong> Aumente a dificuldade do seu trabalho. Você tem cobertura, dados e estrutura sólida para crescer.</li>`;
-      } else {
-        html += `<li><strong>Otimização Fina:</strong> O seu sistema está em equilíbrio. Busque otimizar o tempo documentado de lazer vs. distração pura.</li>`;
-      }
-      html += `</ul></div>`;
+      html += `<div class="summary-text-item"><b><i class="fa-solid fa-location-dot"></i> Realidade:</b> ${realText}</div>`;
+      html += `<div class="summary-text-item" style="margin-top: 6px;"><b><i class="fa-solid fa-battery-half"></i> Energia:</b> ${energyText}</div>`;
+      html += `<div class="summary-action-item"><i class="fa-solid fa-bullseye" style="color:var(--accent); margin-right: 6px;"></i> ${actionText}</div>`;
+      
       return html;
-    }
-
-    function renderTimeGaps(wastedH, actData, actContextMap) {
-      const container = document.getElementById('gap-list');
-      const insightEl = document.getElementById('insight-gaps');
-      const titleEl = document.getElementById('gap-card-title');
-
-      const excludeActions = ['sem registro', 'desperdício geral', 'start', 'end', 'início', 'fim'];
-      const wastedActions = Object.keys(actData).filter(a =>
-        actContextMap[a] === 'Distração' && !excludeActions.includes(a.toLowerCase())
-      ).sort((a, b) => actData[b] - actData[a]);
-
-      if (wastedActions.length > 0) {
-        titleEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#ff3366;"></i> Top Distrações (Sabotagem Declarada)';
-        const top = wastedActions.slice(0, 5);
-        const maxH = actData[top[0]];
-        const medals = ['1º', '2º', '3º', '4º', '5º'];
-
-        container.innerHTML = top.map((a, i) => {
-          const pct = maxH > 0 ? (actData[a] / maxH) * 100 : 0;
-          return `
-            <div class="gap-item">
-              <span class="gap-rank">${medals[i]}</span>
-              <span class="gap-label">${a}</span>
-              <div class="gap-bar-wrap"><div class="gap-bar" style="width:${pct}%"></div></div>
-              <span class="gap-hours">${actData[a].toFixed(1)}h</span>
-            </div>`;
-        }).join('');
-
-        insightEl.className = 'chart-insight critical';
-        insightEl.innerHTML = `<i class="fa-solid fa-lightbulb" style="color:#ff3366;"></i> <b>"${wastedActions[0]}" é o seu principal ladrão de tempo CONSCIENTE: ${actData[wastedActions[0]].toFixed(1)}h.</b>`;
-        return;
-      }
-
-      if (wastedH > 0) {
-        titleEl.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Distração (sem categoria)';
-        container.innerHTML = `
-          <div class="gap-item">
-            <span class="gap-rank"><i class="fa-solid fa-triangle-exclamation"></i></span>
-            <span class="gap-label">
-              Distração registrada
-              <span class="gap-sublabel">Contexto declarado, ação não especificada</span>
-            </span>
-            <div class="gap-bar-wrap"><div class="gap-bar" style="width:100%"></div></div>
-            <span class="gap-hours">${wastedH.toFixed(1)}h</span>
-          </div>`;
-        insightEl.className = 'chart-insight critical';
-        insightEl.innerHTML = `<i class="fa-solid fa-lightbulb" style="color:#ff3366;"></i> <b>${wastedH.toFixed(1)}h classificadas como Distração Genérica</b> — mas sem causa exata registrada.`;
-        return;
-      }
-
-      titleEl.innerHTML = '<i class="fa-solid fa-stopwatch"></i> Buracos de Tempo';
-      container.innerHTML = `
-        <div class="gap-empty">
-          Nenhuma Distração Real declarada neste período.<br><br>
-        </div>`;
-      insightEl.className = 'chart-insight';
-      insightEl.innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> A sua performance de foco dentro do que foi observado está blindada.`;
     }
 
     Chart.register(ChartDataLabels);
     Chart.defaults.font.family = "'Courier New', monospace";
     Chart.defaults.plugins.datalabels.color = '#fff';
-    Chart.defaults.plugins.datalabels.font = { weight: 'bold', size: 10 };
 
     google.script.run
       .withSuccessHandler(initDashboard)
@@ -887,8 +880,6 @@
       if (allowAutoSelect && select.value === 'ALL' && validOpts.length === 1) { select.value = validOpts[0]; }
     }
 
-    function calculateMean(arr) { return arr.length === 0 ? 0 : arr.reduce((a, b) => a + b, 0) / arr.length; }
-
     function getColor(itemName, parentContext) {
       if (itemName && (itemName.toLowerCase() === 'não registrado' || itemName.toLowerCase() === 'sem registro')) return '#444444';
       if (paletteColors[itemName]) return paletteColors[itemName];
@@ -910,7 +901,7 @@
         return true;
       });
 
-      let totalH = 0, count = 0, workH = 0, leisureH = 0, wastedH = 0, mentalH = 0, physicalH = 0, unloggedH = 0;
+      let totalH = 0, count = 0, workH = 0, leisureH = 0, wastedH = 0, mentalH = 0, physicalH = 0, unloggedH = 0, totalSleepSum = 0;
       let sleepArr = [];
       let ctxData = {}, actData = {}, actContextMap = {};
       let mealByDay = {}, unwindByDay = {}, physicalByDay = {}, mentalByDay = {}, sleepByDay = {};
@@ -931,20 +922,19 @@
 
       filtered.forEach(d => {
         const dayBr = dayMap[d.dayAbbr] || d.dayAbbr;
-        totalH += d.duration; count += d.count;
+        
+        totalH += d.duration; 
+        count += d.count;
+        
         let ctx = String(d.context).trim();
         let act = String(d.action).trim();
         
-        if (!weeklyCompareData[d.week]) weeklyCompareData[d.week] = { work: 0, leisure: 0, wasted: 0, unlogged: 0 };
-        
+        if (!weeklyCompareData[d.week]) weeklyCompareData[d.week] = { work: 0, leisure: 0, wasted: 0, unlogged: 0, total: 0, sleep: 0 };
+        weeklyCompareData[d.week].total += d.duration;
+
         if (ctx.toLowerCase() === 'não registrado' || act.toLowerCase() === 'sem registro') {
-          unloggedH += d.duration;
-          if (unloggedByDay[dayBr] !== undefined) unloggedByDay[dayBr] += d.duration;
-          weeklyCompareData[d.week].unlogged += d.duration;
-          ctx = 'Não Registrado';
-          act = 'Sem registro';
-        }
-        else {
+          ctx = 'Não Registrado'; act = 'Sem registro';
+        } else {
           if (ctx === 'Distração' || ctx === 'Distracao') ctx = 'Distração';
           if (ctx === 'Distração' && (!act || act.toLowerCase() === 'distração')) act = 'Desperdício Geral'; 
           if (ctx === 'Health' || ctx === 'Saúde Física' || ctx === 'Physical') ctx = 'Saúde';
@@ -954,7 +944,14 @@
           if (ctx === 'Meal') ctx = 'Refeição';
         }
         
-        if (ctx === 'Sono') { 
+        if (ctx === 'Não Registrado') {
+          unloggedH += d.duration; 
+          weeklyCompareData[d.week].unlogged += d.duration;
+          if (unloggedByDay[dayBr] !== undefined) unloggedByDay[dayBr] += d.duration;
+        }
+        else if (ctx === 'Sono') { 
+          totalSleepSum += d.duration; 
+          weeklyCompareData[d.week].sleep += d.duration;
           if (act === 'Sleep (Calculated)' || act === 'Sono (Calculado)') {
             sleepArr.push(d.duration); 
             if (sleepByDay[dayBr] !== undefined) sleepByDay[dayBr] += d.duration;
@@ -973,7 +970,7 @@
           if (mentalByDay[dayBr] !== undefined) mentalByDay[dayBr] += d.duration;
         }
         else if (ctx === 'Distração') {
-          wastedH += d.duration;
+          wastedH += d.duration; 
           weeklyCompareData[d.week].wasted += d.duration;
           if (wastedByDay[dayBr] !== undefined) wastedByDay[dayBr] += d.duration;
         }
@@ -986,7 +983,7 @@
         ctxData[ctx] = (ctxData[ctx] || 0) + d.duration;
         
         if (ctx === 'Distração' && act === 'Desperdício Geral') {
-          // Mantém limpo
+          // Ignora
         } else {
           actData[act] = (actData[act] || 0) + d.duration;
           actContextMap[act] = ctx;
@@ -1000,19 +997,16 @@
         }
       });
 
-      let sleepMed = calculateMean(sleepArr);
-      let totalSleepSum = sleepArr.reduce((a,b)=>a+b,0);
+      let sleepMed = sleepArr.length === 0 ? 0 : sleepArr.reduce((a, b) => a + b, 0) / sleepArr.length;
       let awakeHours = totalH - totalSleepSum;
       let coveragePct = awakeHours > 0 ? ((awakeHours - unloggedH) / awakeHours) * 100 : 0;
       if (coveragePct < 0) coveragePct = 0;
 
       let sortedCtx = Object.keys(ctxData).sort((a,b) => ctxData[b] - ctxData[a]);
-      
       const excludeActionsFromCharts = ['sem registro', 'start', 'end', 'início', 'fim'];
       let sortedAct = Object.keys(actData)
         .filter(a => !excludeActionsFromCharts.includes(a.toLowerCase()))
         .sort((a,b) => actData[b] - actData[a]);
-      
       let topRealCtx = sortedCtx.find(c => c.toLowerCase() !== 'não registrado') || "Nenhum";
 
       currentMetrics = { totalH, workH, leisureH, wastedH, unloggedH, coverage: coveragePct, sleepMed, physicalH, mentalH, topContext: topRealCtx };
@@ -1022,42 +1016,19 @@
       const scores = generateScores(currentMetrics);
       
       document.getElementById('diag-status').innerHTML = getSystemVerdict(scores.performance, scores.health, coveragePct, currentMetrics.wastedH, currentMetrics.workH);
+      document.getElementById('diag-main-action').innerHTML = getMainAction(currentMetrics, scores);
       
-      const actionEl = document.getElementById('diag-main-action');
-      actionEl.innerHTML = getMainAction(currentMetrics, scores);
-      if (coveragePct < 50 || currentMetrics.wastedH > currentMetrics.workH || scores.health < 60) {
-        actionEl.style.borderLeftColor = '#ff3366';
-        actionEl.style.color = '#ff3366';
-        actionEl.style.background = 'rgba(255,51,102,0.08)';
-      } else if (scores.performance >= 80 && scores.health >= 80) {
-        actionEl.style.borderLeftColor = '#00ffaa';
-        actionEl.style.color = '#00ffaa';
-        actionEl.style.background = 'rgba(0,255,170,0.08)';
-      } else {
-        actionEl.style.borderLeftColor = 'var(--accent)';
-        actionEl.style.color = 'var(--accent)';
-        actionEl.style.background = 'rgba(0,136,255,0.08)';
-      }
-
-      const scoreBox = document.getElementById('diag-score');
-      const scoreLabel = document.getElementById('diag-score-label');
-      const scoreImpact = document.getElementById('diag-score-impact');
-      scoreBox.innerText = scores.performance;
-      scoreLabel.innerText = getPerfVerdict(scores.performance);
-      document.getElementById('diag-score-impact').innerText = getPerfImpact(scores.performance);
       const perfColor = scores.performance >= 80 ? "#00ffaa" : scores.performance >= 60 ? "#ffbb00" : "#ff3366";
-      scoreBox.style.color = perfColor; scoreLabel.style.color = perfColor;
+      document.getElementById('diag-perf-val').innerHTML = scores.performance + `<span>/100</span>`;
+      document.getElementById('diag-perf-val').style.color = perfColor;
+      document.getElementById('diag-perf-desc').innerText = getPerfVerdict(scores.performance);
 
-      const healthBox = document.getElementById('diag-health');
-      const healthLabel = document.getElementById('diag-health-label');
-      const healthImpact = document.getElementById('diag-health-impact');
-      healthBox.innerText = scores.health;
-      healthLabel.innerText = getHealthVerdict(scores.health);
-      document.getElementById('diag-health-impact').innerText = getHealthImpact(scores.health);
       const healthColor = scores.health >= 80 ? "#00ffaa" : scores.health >= 60 ? "#ffbb00" : "#ff3366";
-      healthBox.style.color = healthColor; healthLabel.style.color = healthColor;
+      document.getElementById('diag-health-val').innerHTML = scores.health + `<span>/100</span>`;
+      document.getElementById('diag-health-val').style.color = healthColor;
+      document.getElementById('diag-health-desc').innerText = getHealthVerdict(scores.health);
 
-      document.getElementById('diagnostic-text').innerHTML = buildSmartInsights(currentMetrics, scores);
+      document.getElementById('diagnostic-text').innerHTML = buildCompactInsights(currentMetrics, scores);
 
       const sysWastedColor = paletteColors["Distração"] || "#ff3366";
       const safeAccent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0088ff';
@@ -1070,59 +1041,69 @@
       document.getElementById('kpi-wasted').innerHTML = wastedH.toFixed(1) + '<span class="kpi-unit">h</span>';
       document.getElementById('kpi-sleep-med').innerHTML = sleepMed.toFixed(1) + '<span class="kpi-unit">h</span>';
 
-      let unloggedPct = totalH > 0 ? ((unloggedH / totalH) * 100).toFixed(0) : 0;
-      
-      if (topRealCtx !== "Nenhum") {
-          document.getElementById('insight-context').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> O Endlos não sabe o que aconteceu em ${unloggedPct}% do seu tempo geral. O polo real documentado foi "${topRealCtx}".`;
+      const container = document.getElementById('gap-list');
+      const insightEl = document.getElementById('insight-gaps');
+      const titleEl = document.getElementById('gap-card-title');
+      const wastedActions = Object.keys(actData).filter(a => actContextMap[a] === 'Distração' && !excludeActionsFromCharts.includes(a.toLowerCase())).sort((a, b) => actData[b] - actData[a]);
+
+      if (wastedActions.length > 0) {
+        titleEl.innerHTML = '<span class="chart-header-group"><i class="fa-solid fa-grip-vertical chart-drag-handle" title="Arraste para mover"></i> <i class="fa-solid fa-triangle-exclamation" style="color:#ff3366; margin-right: 8px;"></i> Top Distrações</i></button></div>';
+        const top = wastedActions.slice(0, 5);
+        const maxH = actData[top[0]];
+        const medals = ['1º', '2º', '3º', '4º', '5º'];
+
+        container.innerHTML = top.map((a, i) => {
+          const pct = maxH > 0 ? (actData[a] / maxH) * 100 : 0;
+          return `<div class="gap-item"><span class="gap-rank">${medals[i]}</span><span class="gap-label">${a}</span><div class="gap-bar-wrap"><div class="gap-bar" style="width:${pct}%"></div></div><span class="gap-hours">${actData[a].toFixed(1)}h</span></div>`;
+        }).join('');
+        insightEl.className = 'chart-insight critical';
+        insightEl.innerHTML = `<i class="fa-solid fa-lightbulb" style="color:#ff3366;"></i> <b>"${wastedActions[0]}" é o seu principal ladrão de tempo CONSCIENTE: ${actData[wastedActions[0]].toFixed(1)}h.</b>`;
+      } else if (wastedH > 0) {
+        titleEl.innerHTML = '<span class="chart-header-group"><i class="fa-solid fa-grip-vertical chart-drag-handle" title="Arraste para mover"></i> <i class="fa-solid fa-hourglass-half" style="margin-right: 8px;"></i> Distração Genérica</span> <div class="chart-actions"><button class="chart-action-btn" onclick="toggleCardSize(this)" title="Expandir Largura"><i class="fa-solid fa-left-right"></i></button></div>';
+        container.innerHTML = `<div class="gap-item"><span class="gap-rank"><i class="fa-solid fa-triangle-exclamation"></i></span><span class="gap-label">Distração registrada<span class="gap-sublabel">Contexto declarado, ação não especificada</span></span><div class="gap-bar-wrap"><div class="gap-bar" style="width:100%"></div></div><span class="gap-hours">${wastedH.toFixed(1)}h</span></div>`;
+        insightEl.className = 'chart-insight critical';
+        insightEl.innerHTML = `<i class="fa-solid fa-lightbulb" style="color:#ff3366;"></i> <b>${wastedH.toFixed(1)}h classificadas como Distração Genérica</b> — mas sem causa exata registrada.`;
       } else {
-          document.getElementById('insight-context').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> Sem atividades documentadas para gerar estatísticas.`;
+        titleEl.innerHTML = '<span class="chart-header-group"><i class="fa-solid fa-grip-vertical chart-drag-handle" title="Arraste para mover"></i> <i class="fa-solid fa-stopwatch" style="margin-right: 8px;"></i> Buracos de Tempo</span> <div class="chart-actions"><button class="chart-action-btn" onclick="toggleCardSize(this)" title="Expandir Largura"><i class="fa-solid fa-left-right"></i></button></div>';
+        container.innerHTML = `<div class="gap-empty">Nenhuma Distração Real declarada neste período.<br><br></div>`;
+        insightEl.className = 'chart-insight';
+        insightEl.innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> A sua performance de foco dentro do que foi observado está blindada.`;
       }
-
-      let topAct = sortedAct[0] || "Nenhuma";
-      document.getElementById('insight-action').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> "${topAct}" foi a sua atividade dominante declarada, consumindo ${(actData[topAct]||0).toFixed(1)}h.`;
-
-      let totalMealH = weekOrderPt.reduce((acc, d) => acc + mealByDay[d].h, 0);
-      let totalMealC = weekOrderPt.reduce((acc, d) => acc + mealByDay[d].c, 0);
-      document.getElementById('insight-meal').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> Você registrou ${totalMealC} refeições, totalizando ${totalMealH.toFixed(1)}h na mesa.`;
-
-      let healthAlert = physicalH < 2.5 ? "Atenção ao risco de sedentarismo." : "Manutenção física adequada.";
-      document.getElementById('insight-health').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> O investimento total foi de ${physicalH.toFixed(1)}h no físico e ${mentalH.toFixed(1)}h no mental. ${healthAlert}`;
-
-      let sumUnwind = weekOrderPt.reduce((acc, d) => acc + unwindByDay[d], 0);
-      document.getElementById('insight-sleepUnwind').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> A sua média de sono foi de ${sleepMed.toFixed(1)}h, apoiada por um total de ${sumUnwind.toFixed(1)}h de descompressão.`;
-
-      let maxWorkDay = weekOrderPt.reduce((max, d) => workByDay[d] > workByDay[max] ? d : max, weekOrderPt[0]);
-      let maxWastedDay = weekOrderPt.reduce((max, d) => wastedByDay[d] > wastedByDay[max] ? d : max, weekOrderPt[0]);
-      if(workByDay[maxWorkDay] > 0 || wastedByDay[maxWastedDay] > 0) {
-        document.getElementById('insight-focusWasted').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> O seu pico de foco costuma ser na <b>${maxWorkDay}</b>, enquanto a maior distração declarada bate na <b>${maxWastedDay}</b>.`;
-      } else {
-        document.getElementById('insight-focusWasted').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> Não há dados suficientes de Foco ou Distração para estabelecer um padrão diário.`;
-      }
-
-      let validWeeks = Object.keys(weeklyCompareData).filter(w => w && w !== "-");
-      let maxWorkWeek = validWeeks.reduce((max, w) => weeklyCompareData[w].work > (weeklyCompareData[max]?.work || 0) ? w : max, validWeeks[0]);
-      if(maxWorkWeek) {
-          document.getElementById('insight-weekly').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> O seu pico de Foco ocorreu na semana "${maxWorkWeek}" com ${weeklyCompareData[maxWorkWeek].work.toFixed(1)}h de execução.`;
-      } else {
-          document.getElementById('insight-weekly').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> Dados insuficientes para efetuar um comparativo semanal.`;
-      }
-
-      renderTimeGaps(wastedH, actData, actContextMap);
 
       let ctxColors = sortedCtx.map(c => getColor(c));
       const chartBorderColor = isLightMode ? '#ffffff' : '#111111';
-      buildChart('contextChart', 'doughnut', sortedCtx, [{ data: sortedCtx.map(k=>ctxData[k]), backgroundColor: ctxColors, borderWidth: 2, borderColor: chartBorderColor }], { cutout: '65%', legend: true });
       
-      const actArea = document.getElementById('action-scroll-area');
-      actArea.style.height = (sortedAct.length * 35) + 'px'; 
+      if (contextChartType === 'doughnut') {
+        document.getElementById('context-doughnut-wrapper').style.display = 'block';
+        document.getElementById('context-scroll-wrapper').style.display = 'none';
+        buildChart('contextChart', 'doughnut', sortedCtx, [{ data: sortedCtx.map(k=>ctxData[k]), backgroundColor: ctxColors, borderWidth: 2, borderColor: chartBorderColor }], { cutout: '65%', legend: true });
+      } else {
+        document.getElementById('context-doughnut-wrapper').style.display = 'none';
+        document.getElementById('context-scroll-wrapper').style.display = 'block';
+        const ctxArea = document.getElementById('context-scroll-area');
+        ctxArea.style.height = Math.max(200, sortedCtx.length * 35) + 'px'; 
+        buildChart('contextChartBar', 'bar', sortedCtx, [{ data: sortedCtx.map(k=>ctxData[k]), backgroundColor: ctxColors, borderRadius: 4 }], { horizontal: true, showLabels: true });
+      }
+
       let actColors = sortedAct.map(a => getColor(a, actContextMap[a]));
-      buildChart('actionChart', 'bar', sortedAct, [{ data: sortedAct.map(k=>actData[k]), backgroundColor: actColors, borderRadius: 4 }], { horizontal: true, showLabels: true });
+      if (actionChartType === 'bar') {
+        document.getElementById('action-doughnut-wrapper').style.display = 'none';
+        document.getElementById('action-scroll-wrapper').style.display = 'block';
+        const actArea = document.getElementById('action-scroll-area');
+        actArea.style.height = Math.max(200, sortedAct.length * 35) + 'px'; 
+        buildChart('actionChart', 'bar', sortedAct, [{ data: sortedAct.map(k=>actData[k]), backgroundColor: actColors, borderRadius: 4 }], { horizontal: true, showLabels: true });
+      } else {
+        document.getElementById('action-scroll-wrapper').style.display = 'none';
+        document.getElementById('action-doughnut-wrapper').style.display = 'block';
+        buildChart('actionChartDoughnut', 'doughnut', sortedAct, [{ data: sortedAct.map(k=>actData[k]), backgroundColor: actColors, borderWidth: 2, borderColor: chartBorderColor }], { cutout: '65%', legend: true });
+      }
 
       let mealColor = paletteColors['Refeição'] || paletteColors['Meal'] || (isLightMode ? '#cccccc' : '#555555');
+      let mealLineColor = isLightMode ? '#b35900' : '#ffbb00'; 
       buildChart('mealChart', 'bar', weekOrderPt, [
-        { type: 'line', label: 'Qtd.', data: weekOrderPt.map(d=>mealByDay[d].c), borderColor: '#ffbb00', borderWidth: 2, pointBackgroundColor: '#ffbb00', datalabels: { align: 'top', color: '#ffbb00' } },
+        { type: 'line', label: 'Qtd.', data: weekOrderPt.map(d=>mealByDay[d].c), borderColor: mealLineColor, borderWidth: 2, pointBackgroundColor: mealLineColor, datalabels: { align: 'top', color: mealLineColor } },
         { type: 'bar', label: 'Horas', data: weekOrderPt.map(d=>mealByDay[d].h), backgroundColor: mealColor, borderRadius: 4, datalabels: { color: isLightMode ? '#000' : '#fff' } }
-      ], { showLabels: true });
+      ], { showLabels: true, forceYAxis: false, layoutPadding: { top: 25 } });
 
       buildChart('focusWastedDayChart', 'bar', weekOrderPt, [
         { label: 'Foco (h)', data: weekOrderPt.map(d=>workByDay[d]), backgroundColor: safeAccent, borderRadius: 4, datalabels: { color: '#ffffff' } },
@@ -1142,7 +1123,49 @@
       buildChart('sleepUnwindChart', 'bar', weekOrderPt, [
         { type: 'line', label: 'Sono (h)', data: weekOrderPt.map(d=>sleepByDay[d]), borderColor: sleepColor, borderWidth: 2, pointBackgroundColor: sleepColor, datalabels: { align: 'top', color: sleepColor } },
         { type: 'bar', label: 'Unwind (h)', data: weekOrderPt.map(d=>unwindByDay[d]), backgroundColor: unwindColor, borderRadius: 4, datalabels: { color: isLightMode ? '#000' : '#fff' } }
-      ], { showLabels: true, forceYAxis: false });
+      ], { showLabels: true, forceYAxis: false, layoutPadding: { top: 25 } });
+
+      let validWeeks = sortWeekStrings(Object.keys(weeklyCompareData).filter(w => w && w !== "-"));
+      let coverageByWeek = validWeeks.map(w => {
+          let wd = weeklyCompareData[w];
+          let awake = wd.total - wd.sleep; 
+          if (awake <= 0) return 0;
+          let cov = ((awake - wd.unlogged) / awake) * 100; 
+          return Math.max(0, Math.min(100, cov));
+      });
+
+      buildChart('coverageEvolutionChart', 'line', validWeeks, [
+          {
+              label: 'Cobertura (%)',
+              data: coverageByWeek,
+              borderColor: safeAccent,
+              backgroundColor: isLightMode ? 'rgba(0, 86, 179, 0.1)' : 'rgba(0, 136, 255, 0.1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.3,
+              pointBackgroundColor: safeAccent,
+              datalabels: { align: 'top', color: isLightMode ? '#000' : '#fff', formatter: (val) => val.toFixed(0) + '%' }
+          }
+      ], { showLabels: true, hideYAxis: true, yMin: 0, yMax: 100, layoutPadding: { top: 25 } });
+
+      if (validWeeks.length > 1) {
+          let firstCov = coverageByWeek[0];
+          let lastCov = coverageByWeek[coverageByWeek.length - 1];
+          let diff = lastCov - firstCov;
+          let trendText = diff > 0 ? `aumentou <b style="color:#00ffaa;">+${diff.toFixed(0)}%</b>` : (diff < 0 ? `caiu <b style="color:#ff3366;">${diff.toFixed(0)}%</b>` : "se manteve estável");
+          document.getElementById('insight-coverageEvolution').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> Da primeira semana mapeada até a atual, a sua capacidade de observação ${trendText}.`;
+      } else if (validWeeks.length === 1) {
+          document.getElementById('insight-coverageEvolution').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> Você tem ${coverageByWeek[0].toFixed(0)}% de cobertura nesta semana. Continue registrando para ver a evolução.`;
+      } else {
+          document.getElementById('insight-coverageEvolution').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> Dados insuficientes.`;
+      }
+
+      let maxWorkWeek = validWeeks.reduce((max, w) => weeklyCompareData[w].work > (weeklyCompareData[max]?.work || 0) ? w : max, validWeeks[0]);
+      if(maxWorkWeek) {
+          document.getElementById('insight-weekly').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> O seu pico de Foco ocorreu na semana "${maxWorkWeek}" com ${weeklyCompareData[maxWorkWeek].work.toFixed(1)}h de execução.`;
+      } else {
+          document.getElementById('insight-weekly').innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--accent);"></i> <b>Note que:</b> Dados insuficientes para efetuar um comparativo semanal.`;
+      }
 
       buildChart('weeklyCompareChart', 'bar', validWeeks, [
         { label: 'Foco', data: validWeeks.map(w => weeklyCompareData[w].work), backgroundColor: safeAccent, datalabels: { color: '#ffffff' } },
@@ -1151,30 +1174,24 @@
         { label: 'Não Registrado', data: validWeeks.map(w => weeklyCompareData[w].unlogged), backgroundColor: '#444444', datalabels: { color: '#ffffff' } }
       ], { showLabels: true, legend: true, stacked: true, hideYAxis: true });
 
-      const durations = filtered.map(d => d.duration).filter(d => d > 0);
-      if (durations.length > 0) {
-        const statsHTML = `
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; color:var(--text-secondary);">
-            <div><b style="color:var(--text-primary);">Média:</b> ${mean(durations).toFixed(2)}h</div>
-            <div><b style="color:var(--text-primary);">Mediana:</b> ${median(durations).toFixed(2)}h</div>
-            <div><b style="color:var(--text-primary);">Desv. Padrão:</b> ${stdDev(durations).toFixed(2)}</div>
-            <div><b style="color:var(--text-primary);">Variância:</b> ${variance(durations).toFixed(2)}</div>
-            <div><b style="color:var(--text-primary);">Mínimo:</b> ${Math.min(...durations).toFixed(2)}h</div>
-            <div><b style="color:var(--text-primary);">Máximo:</b> ${Math.max(...durations).toFixed(2)}h</div>
-          </div>
-        `;
-        document.getElementById('stats-content').innerHTML = statsHTML;
-      }
     }
 
     function buildChart(canvasId, type, labels, datasets, config) {
+      const isMobile = window.innerWidth <= 1024 || /Mobi|Android|iPhone/i.test(navigator.userAgent);
+
       let options = {
         responsive: true, maintainAspectRatio: false,
         animation: { duration: 1000, easing: 'easeOutQuart' },
+        layout: { padding: config.layoutPadding || { top: 5, bottom: 5, left: 5, right: 5 } },
         plugins: {
-          legend: { display: config.legend || false, position: 'right', labels: { boxWidth: 12, font: {size: 10} } },
+          legend: { 
+            display: config.legend || false, 
+            position: isMobile ? 'top' : 'right', 
+            labels: { boxWidth: 12, font: {size: 10} } 
+          },
           datalabels: { 
             display: config.showLabels || type === 'doughnut', 
+            font: { size: isMobile ? 8 : 10, weight: 'bold' },
             formatter: (value) => value >= 0.5 ? (Number.isInteger(value) ? value : value.toFixed(1)) : '' 
           }
         },
@@ -1189,15 +1206,28 @@
       else { 
         options.scales.x.display = true; options.scales.x.border = {display: false}; 
         if (config.stacked && !config.hideYAxis) options.scales.y.display = true; 
-        if (config.forceYAxis) options.scales.y.display = true;
+        
+        if (config.forceYAxis) {
+            options.scales.y.display = true;
+            if (config.yMin !== undefined) options.scales.y.min = config.yMin;
+            if (config.yMax !== undefined) options.scales.y.max = config.yMax;
+        }
+        if (!config.hideYAxis || config.forceYAxis || type === 'bar') {
+             if (!options.scales.y.display) options.scales.y.display = false; 
+             options.scales.y.grace = '15%'; 
+        }
       }
 
       if (charts[canvasId]) {
-        charts[canvasId].data.labels = labels; charts[canvasId].data.datasets = datasets;
-        charts[canvasId].options = options; charts[canvasId].update(); 
-      } else {
-        charts[canvasId] = new Chart(document.getElementById(canvasId).getContext('2d'), { type: type, data: { labels: labels, datasets: datasets }, options: options });
+        charts[canvasId].destroy();
       }
+
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      charts[canvasId] = new Chart(ctx, { 
+        type: type, 
+        data: { labels: labels, datasets: datasets }, 
+        options: options 
+      });
     }
   </script>
 </body>
