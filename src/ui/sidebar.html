@@ -487,11 +487,30 @@
       }
 
       function openActionModal(contextId, actionId = null) {
-        document.getElementById('modal-target-type').value = 'ACTION'; document.getElementById('modal-target-id').value = actionId || ''; document.getElementById('modal-parent-id').value = contextId;
+        document.getElementById('modal-target-type').value = 'ACTION'; 
+        document.getElementById('modal-target-id').value = actionId || ''; 
+        document.getElementById('modal-parent-id').value = contextId;
         document.getElementById('modal-color-group').style.display = 'none'; 
-        let nameEl = document.getElementById('modal-input-name'); let modeEl = document.getElementById('modal-select-mode');
-        if (actionId) { let act = sysConfigState.actions.find(a => a.id === actionId); document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> EDITAR AÇÃO'; nameEl.value = act.name; populateModeSelect(modeEl, act.modeOverride); } 
-        else { document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-plus"></i> NOVA AÇÃO'; nameEl.value = ''; populateModeSelect(modeEl, 'Entrada'); }
+        
+        let nameEl = document.getElementById('modal-input-name'); 
+        let modeEl = document.getElementById('modal-select-mode');
+        
+        if (actionId) { 
+            // Se for edição, puxa o override salvo da ação
+            let act = sysConfigState.actions.find(a => a.id === actionId); 
+            document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> EDITAR AÇÃO'; 
+            nameEl.value = act.name; 
+            populateModeSelect(modeEl, act.modeOverride); 
+        } else { 
+            // Se for criação de NOVA AÇÃO, herda automaticamente o Mode do Contexto Pai!
+            document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-plus"></i> NOVA AÇÃO'; 
+            nameEl.value = ''; 
+            
+            let parentCtx = sysConfigState.contexts.find(c => c.id === contextId);
+            let defaultMode = (parentCtx && parentCtx.mode) ? parentCtx.mode : 'Entrada';
+            
+            populateModeSelect(modeEl, defaultMode); // Pré-seleciona o modo do pai
+        }
         document.getElementById('sys-modal-overlay').style.display = 'flex';
       }
 
