@@ -1,8 +1,8 @@
 function promptFullSync() {
   const ui = SpreadsheetApp.getUi();
   const response = ui.alert(
-    '⚠️ Confirm Rebuild Daten',
-    'Are you sure you want to rebuild the entire history?',
+    '⚠️ Confirmar reconstrução da Daten',
+    'Tem certeza de que deseja reconstruir todo o histórico?',
     ui.ButtonSet.YES_NO
   );
   return response === ui.Button.YES;
