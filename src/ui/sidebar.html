@@ -362,10 +362,23 @@
       function handleSearch() { searchQuery = document.getElementById('sys-search').value.toLowerCase(); renderTree(); }
 
       function persistAndReload(successMsg) {
-        showSidebarToast("Gravando no servidor...", "loading");
+        // MÁGICA 1: Pula o "loading" amarelo. Mostra o balão VERDE de sucesso na mesma hora!
+        showSidebarToast(successMsg, "success"); 
+        
+        // MÁGICA 2: Atualiza a lista na tela no mesmo milissegundo
+        renderTree(); 
+        
+        // MÁGICA 3: Exibe discretamente no rodapé que o Google está trabalhando
+        document.getElementById('sync-status').innerText = "Salvando na nuvem...";
+
+        // Manda pro Google salvar de forma invisível, sem roubar o tooltip
         google.script.run.withSuccessHandler(() => {
-           showSidebarToast(successMsg, "success"); loadSystemConfigFromDatabase(); 
-        }).withFailureHandler(err => showSidebarToast("Falha: " + err.message, "error")).saveSystemConfigToPalette(JSON.stringify(sysConfigState));
+           document.getElementById('sync-status').innerText = "Sistema Sincronizado"; 
+           loadSystemConfigFromDatabase(true); 
+        }).withFailureHandler(err => {
+           showSidebarToast("Falha ao sincronizar: " + err.message, "error");
+           document.getElementById('sync-status').innerText = "Erro"; 
+        }).saveSystemConfigToPalette(JSON.stringify(sysConfigState));
       }
 
       function checkForOrphanActions() {
@@ -401,19 +414,30 @@
         btnSave.onclick = () => {
           let selectedMode = selectEl.value;
           if (!selectedMode) { showSidebarToast("Selecione um modo obrigatório", "error"); return; }
-          btnSave.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> GRAVANDO...'; btnSave.disabled = true;
           
+          // 1. Salva na memória do navegador na mesma hora
           let targetAction = sysConfigState.actions.find(a => a.id === actionToProcess.id);
-          if (targetAction) {
-              targetAction.modeOverride = selectedMode;
+          if (targetAction) targetAction.modeOverride = selectedMode;
+
+          // 2. Some com o modal e atualiza a tela instantaneamente
+          document.getElementById('forced-modal-overlay').style.display = 'none';
+          renderTree();
+          pendingActionsQueue.shift(); 
+          
+          if (pendingActionsQueue.length > 0) {
+              processNextOrphanAction(); 
+          } else {
+              showSidebarToast("Modos configurados!", "success"); // VERDE NA HORA!
           }
 
+          // 3. Deixa o Google salvar de fundo, sem bloquear a tela
+          document.getElementById('sync-status').innerText = "Salvando modos...";
           google.script.run.withSuccessHandler(() => {
-              pendingActionsQueue.shift(); btnSave.innerHTML = '<i class="fa-solid fa-check"></i> SALVAR & CONTINUAR'; btnSave.disabled = false;
-              document.getElementById('forced-modal-overlay').style.display = 'none';
-              processNextOrphanAction(); if (pendingActionsQueue.length === 0) loadSystemConfigFromDatabase();
+              document.getElementById('sync-status').innerText = "Sistema Sincronizado";
+              if (pendingActionsQueue.length === 0) loadSystemConfigFromDatabase(true);
           }).withFailureHandler(err => {
-              showSidebarToast(err.message, "error"); btnSave.innerHTML = '<i class="fa-solid fa-rotate-right"></i> TENTAR NOVAMENTE'; btnSave.disabled = false;
+              showSidebarToast("Erro de conexão: " + err.message, "error");
+              document.getElementById('sync-status').innerText = "Erro ao salvar";
           }).saveSystemConfigToPalette(JSON.stringify(sysConfigState));
         };
         
@@ -486,16 +510,16 @@
           if (id) { let act = sysConfigState.actions.find(a => a.id === id); if (act) { act.name = name; act.modeOverride = mode; } } 
           else { sysConfigState.actions.push({ id: generateId(), name: name, contextId: contextId, modeOverride: mode }); }
         }
-        closeModal(); persistAndReload("Alteração submetida");
+        closeModal(); persistAndReload("Alteração submetida!");
       }
 
       function deleteContext(id) { 
         if(!confirm("Apagar contexto e TODAS as suas ações?")) return;
         sysConfigState.contexts = sysConfigState.contexts.filter(c => c.id !== id); sysConfigState.actions = sysConfigState.actions.filter(a => a.contextId !== id); 
-        persistAndReload("Apagando do servidor...");
+        persistAndReload("Contexto apagado!");
       }
       
-      function deleteAction(id) { sysConfigState.actions = sysConfigState.actions.filter(a => a.id !== id); persistAndReload("Apagando do servidor..."); }
+      function deleteAction(id) { sysConfigState.actions = sysConfigState.actions.filter(a => a.id !== id); persistAndReload("Ação apagada!"); }
 
       document.getElementById('config-btn').onclick = function() { var panel = document.getElementById('config-panel'); panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none'; };
       
@@ -540,15 +564,14 @@
         });
       }
 
-      // 1. CONFIGURA OS CLIQUES (Agora incluindo o Pular Update)
+      // 1. CONFIGURA OS CLIQUES 
       function setupToggleListeners() {
         const mealToggle = document.getElementById('meal-toggle'); 
         const unwindToggle = document.getElementById('unwind-toggle');
         const headerToggle = document.getElementById('header-toggle'); 
-        const skipUpdateToggle = document.getElementById('skip-update-toggle'); // RESGATADO!
+        const skipUpdateToggle = document.getElementById('skip-update-toggle'); 
         
         function handleChange() { 
-          // Atualiza todos os textos na hora
           const mealLabel = document.getElementById('meal-toggle-label');
           if (mealLabel && mealToggle) mealLabel.innerText = mealToggle.checked ? "MESCLAR REFEIÇÃO: ON" : "MESCLAR REFEIÇÃO: OFF";
           
@@ -574,17 +597,17 @@
                 unwindToggle ? unwindToggle.checked : false,
                 headerToggle ? headerToggle.checked : false,
                 fontToggle ? fontToggle.checked : false,
-                skipUpdateToggle ? skipUpdateToggle.checked : false // O 5º mosqueteiro
+                skipUpdateToggle ? skipUpdateToggle.checked : false 
             ); 
         }
         
         if (mealToggle) mealToggle.addEventListener('change', handleChange); 
         if (unwindToggle) unwindToggle.addEventListener('change', handleChange);
         if (headerToggle) headerToggle.addEventListener('change', handleChange); 
-        if (skipUpdateToggle) skipUpdateToggle.addEventListener('change', handleChange); // Passa a escutar!
+        if (skipUpdateToggle) skipUpdateToggle.addEventListener('change', handleChange); 
       }
 
-      // 2. LEITURA DA MEMÓRIA (Puxando os 5)
+      // 2. LEITURA DA MEMÓRIA
       function loadToggleMemory() {
         google.script.run
           .withSuccessHandler(function(s) {
@@ -628,7 +651,7 @@
           .getSettingsState();
       }
 
-      // 3. EVENTO DA FONTE (O gatilho que avisa todo mundo)
+      // 3. EVENTO DA FONTE
       document.getElementById('font-toggle').onchange = function() {
         var isColor = this.checked; 
         var label = document.getElementById('font-toggle-label'); 
@@ -640,7 +663,6 @@
              label.innerText = isColor ? "FONTE: COR" : "FONTE: PADRÃO"; 
              showSidebarToast("Fonte aplicada!", "success"); 
              
-             // Envia os 5 valores pra memória global
              const meal = document.getElementById('meal-toggle');
              const unwind = document.getElementById('unwind-toggle');
              const header = document.getElementById('header-toggle');
