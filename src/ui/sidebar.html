@@ -219,7 +219,7 @@
       let previewTimeout = null; 
 
       // ===============================================
-      // TOAST SYSTEM (Atualizado com FontAwesome)
+      // TOAST SYSTEM 
       // ===============================================
       function showSidebarToast(message, type = 'success') {
         var toast = document.getElementById('ui-toast');
@@ -368,7 +368,6 @@
         }).withFailureHandler(err => showSidebarToast("Falha: " + err.message, "error")).saveSystemConfigToPalette(JSON.stringify(sysConfigState));
       }
 
-      // SISTEMA DE FILA: AÇÕES ÓRFÃS
       function checkForOrphanActions() {
         const orphans = sysConfigState.actions.filter(a => !a.modeOverride || a.modeOverride.trim() === "");
         if (orphans.length > 0) {
@@ -385,16 +384,14 @@
         document.getElementById('forced-act-name').innerText = actionToProcess.name;
         document.getElementById('forced-ctx-name').innerText = parentCtx ? parentCtx.name : "Desconhecido";
         
-        // Tenta pegar o modo do Contexto pai, senão fica vazio.
         let defaultMode = (parentCtx && parentCtx.mode) ? parentCtx.mode : "";
         
         let selectEl = document.getElementById('forced-select-mode');
-        selectEl.innerHTML = ''; // Limpa as opções
+        selectEl.innerHTML = ''; 
         if (!defaultMode) {
             selectEl.innerHTML = `<option value="" disabled selected>Escolha um Mode...</option>`;
         }
         
-        // Monta a lista e já deixa pré-selecionado se for igual ao Contexto Pai
         MODES_OPTIONS.forEach(m => { 
             let isSelected = (m === defaultMode) ? "selected" : "";
             selectEl.innerHTML += `<option value="${m}" ${isSelected}>${m}</option>`; 
@@ -406,26 +403,23 @@
           if (!selectedMode) { showSidebarToast("Selecione um modo obrigatório", "error"); return; }
           btnSave.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> GRAVANDO...'; btnSave.disabled = true;
           
-          // 1. Atualiza na memória do navegador a nova ação
           let targetAction = sysConfigState.actions.find(a => a.id === actionToProcess.id);
           if (targetAction) {
               targetAction.modeOverride = selectedMode;
           }
 
-          // 2. Manda salvar TUDO na planilha de uma vez só
           google.script.run.withSuccessHandler(() => {
               pendingActionsQueue.shift(); btnSave.innerHTML = '<i class="fa-solid fa-check"></i> SALVAR & CONTINUAR'; btnSave.disabled = false;
               document.getElementById('forced-modal-overlay').style.display = 'none';
               processNextOrphanAction(); if (pendingActionsQueue.length === 0) loadSystemConfigFromDatabase();
           }).withFailureHandler(err => {
               showSidebarToast(err.message, "error"); btnSave.innerHTML = '<i class="fa-solid fa-rotate-right"></i> TENTAR NOVAMENTE'; btnSave.disabled = false;
-          }).saveSystemConfigToPalette(JSON.stringify(sysConfigState)); // Salva com a função Mestra!
+          }).saveSystemConfigToPalette(JSON.stringify(sysConfigState));
         };
         
         document.getElementById('forced-modal-overlay').style.display = 'flex';
       }
 
-      // TREE RENDERER (Atualizado com FontAwesome)
       function renderTree() {
         const container = document.getElementById('builder-tree-list'); container.innerHTML = '';
         const isAdvanced = document.getElementById('adv-edit-toggle').checked;
@@ -503,9 +497,6 @@
       
       function deleteAction(id) { sysConfigState.actions = sysConfigState.actions.filter(a => a.id !== id); persistAndReload("Apagando do servidor..."); }
 
-      // ===============================================
-      // BOTÕES DE UI (Atualizado com FontAwesome)
-      // ===============================================
       document.getElementById('config-btn').onclick = function() { var panel = document.getElementById('config-panel'); panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none'; };
       
       document.getElementById('refresh-btn').onclick = function() { var btn = this; var orig = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; showSidebarToast("Atualizando dados...", "loading"); google.script.run.withSuccessHandler(() => { btn.innerHTML = orig; showSidebarToast("Atualizado", "success"); }).withFailureHandler((err) => { btn.innerHTML = orig; showSidebarToast("Falha: " + err.message, "error"); }).updateHoursDashboard("LAST_WEEK"); };
@@ -525,7 +516,7 @@
       document.getElementById('add-week-btn').onclick = function() { var btn = this; var orig = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; google.script.run.withSuccessHandler(() => { btn.innerHTML = orig; google.script.run.withSuccessHandler(renderButtons).getWeekNames(); }).duplicateLast18ColBlock(); };
 
       // ===============================================
-      // BOTÕES DE SEMANAS (Tradutor embutido)
+      // BOTÕES DE SEMANAS E CONFIGURAÇÕES
       // ===============================================
       function renderButtons(weeks) {
         var container = document.getElementById('list-container'); container.innerHTML = '';
@@ -549,28 +540,129 @@
         });
       }
 
+      // 1. CONFIGURA OS CLIQUES (Agora incluindo o Pular Update)
       function setupToggleListeners() {
-        const mealToggle = document.getElementById('meal-toggle'); const unwindToggle = document.getElementById('unwind-toggle');
-        function handleChange() { showSidebarToast("Salvando preferências...", "loading"); google.script.run.withSuccessHandler(() => showSidebarToast("Preferências salvas!", "success")).saveToggleSettings(mealToggle.checked, unwindToggle.checked); }
-        if (mealToggle) mealToggle.addEventListener('change', handleChange); if (unwindToggle) unwindToggle.addEventListener('change', handleChange);
+        const mealToggle = document.getElementById('meal-toggle'); 
+        const unwindToggle = document.getElementById('unwind-toggle');
+        const headerToggle = document.getElementById('header-toggle'); 
+        const skipUpdateToggle = document.getElementById('skip-update-toggle'); // RESGATADO!
+        
+        function handleChange() { 
+          // Atualiza todos os textos na hora
+          const mealLabel = document.getElementById('meal-toggle-label');
+          if (mealLabel && mealToggle) mealLabel.innerText = mealToggle.checked ? "MESCLAR REFEIÇÃO: ON" : "MESCLAR REFEIÇÃO: OFF";
+          
+          const unwindLabel = document.getElementById('unwind-toggle-label');
+          if (unwindLabel && unwindToggle) unwindLabel.innerText = unwindToggle.checked ? "UNWIND 1H: ON" : "UNWIND 1H: OFF";
+
+          const headerLabel = document.getElementById('header-toggle-label');
+          if (headerLabel && headerToggle) headerLabel.innerText = headerToggle.checked ? "CABEÇALHOS: ON" : "CABEÇALHOS: OFF";
+
+          const skipLabel = document.getElementById('skip-update-toggle-label');
+          if (skipLabel && skipUpdateToggle) skipLabel.innerText = skipUpdateToggle.checked ? "PULAR UPDATE: ON" : "PULAR UPDATE: OFF";
+
+          showSidebarToast("Salvando preferências...", "loading"); 
+          let watchdog = setTimeout(() => showSidebarToast("Falha: O servidor não respondeu.", "error"), 7000);
+          
+          const fontToggle = document.getElementById('font-toggle'); 
+
+          google.script.run
+            .withSuccessHandler(() => { clearTimeout(watchdog); showSidebarToast("Preferências salvas!", "success"); })
+            .withFailureHandler((err) => { clearTimeout(watchdog); showSidebarToast("Erro: " + err.message, "error"); })
+            .saveToggleSettings(
+                mealToggle ? mealToggle.checked : false, 
+                unwindToggle ? unwindToggle.checked : false,
+                headerToggle ? headerToggle.checked : false,
+                fontToggle ? fontToggle.checked : false,
+                skipUpdateToggle ? skipUpdateToggle.checked : false // O 5º mosqueteiro
+            ); 
+        }
+        
+        if (mealToggle) mealToggle.addEventListener('change', handleChange); 
+        if (unwindToggle) unwindToggle.addEventListener('change', handleChange);
+        if (headerToggle) headerToggle.addEventListener('change', handleChange); 
+        if (skipUpdateToggle) skipUpdateToggle.addEventListener('change', handleChange); // Passa a escutar!
       }
 
+      // 2. LEITURA DA MEMÓRIA (Puxando os 5)
       function loadToggleMemory() {
-        google.script.run.withSuccessHandler(function(s) {
-          if (s) {
-            const fontToggle = document.getElementById('font-toggle'); if (fontToggle) { fontToggle.checked = s.isColorFont; document.getElementById('font-toggle-label').innerText = s.isColorFont ? "FONTE: COR" : "FONTE: PADRÃO"; }
-            const mealToggle = document.getElementById('meal-toggle'); if (mealToggle && s.isMealSplit !== undefined) mealToggle.checked = s.isMealSplit; 
-          }
-        }).getSettingsState();
+        google.script.run
+          .withSuccessHandler(function(s) {
+            if (s) {
+              const fontToggle = document.getElementById('font-toggle'); 
+              if (fontToggle) { 
+                  fontToggle.checked = s.isColorFont; 
+                  document.getElementById('font-toggle-label').innerText = s.isColorFont ? "FONTE: COR" : "FONTE: PADRÃO"; 
+              }
+              
+              const mealToggle = document.getElementById('meal-toggle'); 
+              if (mealToggle && s.isMealSplit !== undefined) { 
+                  mealToggle.checked = s.isMealSplit; 
+                  const mLabel = document.getElementById('meal-toggle-label');
+                  if (mLabel) mLabel.innerText = s.isMealSplit ? "MESCLAR REFEIÇÃO: ON" : "MESCLAR REFEIÇÃO: OFF";
+              }
+
+              const unwindToggle = document.getElementById('unwind-toggle');
+              if (unwindToggle && s.isUnwind !== undefined) {
+                  unwindToggle.checked = s.isUnwind;
+                  const uLabel = document.getElementById('unwind-toggle-label');
+                  if (uLabel) uLabel.innerText = s.isUnwind ? "UNWIND 1H: ON" : "UNWIND 1H: OFF";
+              }
+
+              const headerToggle = document.getElementById('header-toggle');
+              if (headerToggle && s.isHeaderEnabled !== undefined) {
+                  headerToggle.checked = s.isHeaderEnabled;
+                  const hLabel = document.getElementById('header-toggle-label');
+                  if (hLabel) hLabel.innerText = s.isHeaderEnabled ? "CABEÇALHOS: ON" : "CABEÇALHOS: OFF";
+              }
+
+              const skipUpdateToggle = document.getElementById('skip-update-toggle');
+              if (skipUpdateToggle && s.isSkipUpdate !== undefined) {
+                  skipUpdateToggle.checked = s.isSkipUpdate;
+                  const skipLabel = document.getElementById('skip-update-toggle-label');
+                  if (skipLabel) skipLabel.innerText = s.isSkipUpdate ? "PULAR UPDATE: ON" : "PULAR UPDATE: OFF";
+              }
+            }
+          })
+          .withFailureHandler(err => showSidebarToast("Erro ler memória: " + err.message, "error"))
+          .getSettingsState();
       }
+
+      // 3. EVENTO DA FONTE (O gatilho que avisa todo mundo)
+      document.getElementById('font-toggle').onchange = function() {
+        var isColor = this.checked; 
+        var label = document.getElementById('font-toggle-label'); 
+        label.innerText = "ATUALIZANDO..."; 
+        showSidebarToast("Atualizando fonte...", "loading");
+        
+        google.script.run
+          .withSuccessHandler(() => { 
+             label.innerText = isColor ? "FONTE: COR" : "FONTE: PADRÃO"; 
+             showSidebarToast("Fonte aplicada!", "success"); 
+             
+             // Envia os 5 valores pra memória global
+             const meal = document.getElementById('meal-toggle');
+             const unwind = document.getElementById('unwind-toggle');
+             const header = document.getElementById('header-toggle');
+             const skipUpdate = document.getElementById('skip-update-toggle');
+             google.script.run.saveToggleSettings(
+                 meal ? meal.checked : false, 
+                 unwind ? unwind.checked : false, 
+                 header ? header.checked : false, 
+                 isColor,
+                 skipUpdate ? skipUpdate.checked : false
+             );
+          })
+          .withFailureHandler(err => { 
+             showSidebarToast("Erro: " + err.message, "error"); 
+             label.innerText = isColor ? "FONTE: PADRÃO" : "FONTE: COR"; 
+             this.checked = !isColor; 
+          })
+          .toggleColorFont(isColor);
+      };
 
       function syncTheme() { google.script.run.withSuccessHandler(t => document.body.classList.toggle('light-mode', t === 'light')).getSidebarTheme(); }
       
-      document.getElementById('font-toggle').onchange = function() {
-        var isColor = this.checked; var label = document.getElementById('font-toggle-label'); label.innerText = "ATUALIZANDO..."; showSidebarToast("Atualizando fonte...", "loading");
-        google.script.run.withSuccessHandler(() => { label.innerText = isColor ? "FONTE: COR" : "FONTE: PADRÃO"; showSidebarToast("Fonte aplicada!", "success"); }).toggleColorFont(isColor);
-      };
-
       window.onload = function() {
         syncTheme(); loadToggleMemory(); setupToggleListeners(); 
         google.script.run.withSuccessHandler(renderButtons).getWeekNames();

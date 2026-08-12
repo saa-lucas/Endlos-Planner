@@ -35,20 +35,3 @@ function applySmartLock(lockOldWeeks) {
     }
   }
 }
-
-
-// =====================================================
-// SYSTEM PROMPT
-// =====================================================
-
-function promptFullSync() {
-  const ui = SpreadsheetApp.getUi();
-
-  const response = ui.alert(
-    '⚠️ Confirm Rebuild Daten',
-    'Are you sure you want to rebuild the entire history? This might take a few seconds.',
-    ui.ButtonSet.YES_NO
-  );
-
-  return response === ui.Button.YES;
-}
