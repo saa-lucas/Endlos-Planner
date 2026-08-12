@@ -385,23 +385,43 @@
         document.getElementById('forced-act-name').innerText = actionToProcess.name;
         document.getElementById('forced-ctx-name').innerText = parentCtx ? parentCtx.name : "Desconhecido";
         
+        // Tenta pegar o modo do Contexto pai, senão fica vazio.
+        let defaultMode = (parentCtx && parentCtx.mode) ? parentCtx.mode : "";
+        
         let selectEl = document.getElementById('forced-select-mode');
-        selectEl.innerHTML = `<option value="" disabled selected>Escolha um Mode...</option>`;
-        MODES_OPTIONS.forEach(m => { selectEl.innerHTML += `<option value="${m}">${m}</option>`; });
+        selectEl.innerHTML = ''; // Limpa as opções
+        if (!defaultMode) {
+            selectEl.innerHTML = `<option value="" disabled selected>Escolha um Mode...</option>`;
+        }
+        
+        // Monta a lista e já deixa pré-selecionado se for igual ao Contexto Pai
+        MODES_OPTIONS.forEach(m => { 
+            let isSelected = (m === defaultMode) ? "selected" : "";
+            selectEl.innerHTML += `<option value="${m}" ${isSelected}>${m}</option>`; 
+        });
 
         let btnSave = document.getElementById('forced-btn-save');
         btnSave.onclick = () => {
           let selectedMode = selectEl.value;
           if (!selectedMode) { showSidebarToast("Selecione um modo obrigatório", "error"); return; }
           btnSave.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> GRAVANDO...'; btnSave.disabled = true;
+          
+          // 1. Atualiza na memória do navegador a nova ação
+          let targetAction = sysConfigState.actions.find(a => a.id === actionToProcess.id);
+          if (targetAction) {
+              targetAction.modeOverride = selectedMode;
+          }
+
+          // 2. Manda salvar TUDO na planilha de uma vez só
           google.script.run.withSuccessHandler(() => {
-             pendingActionsQueue.shift(); btnSave.innerHTML = '<i class="fa-solid fa-check"></i> SALVAR & CONTINUAR'; btnSave.disabled = false;
-             document.getElementById('forced-modal-overlay').style.display = 'none';
-             processNextOrphanAction(); if (pendingActionsQueue.length === 0) loadSystemConfigFromDatabase();
+              pendingActionsQueue.shift(); btnSave.innerHTML = '<i class="fa-solid fa-check"></i> SALVAR & CONTINUAR'; btnSave.disabled = false;
+              document.getElementById('forced-modal-overlay').style.display = 'none';
+              processNextOrphanAction(); if (pendingActionsQueue.length === 0) loadSystemConfigFromDatabase();
           }).withFailureHandler(err => {
-             showSidebarToast(err.message, "error"); btnSave.innerHTML = '<i class="fa-solid fa-rotate-right"></i> TENTAR NOVAMENTE'; btnSave.disabled = false;
-          }).saveSingleActionMode(actionToProcess.name, selectedMode);
+              showSidebarToast(err.message, "error"); btnSave.innerHTML = '<i class="fa-solid fa-rotate-right"></i> TENTAR NOVAMENTE'; btnSave.disabled = false;
+          }).saveSystemConfigToPalette(JSON.stringify(sysConfigState)); // Salva com a função Mestra!
         };
+        
         document.getElementById('forced-modal-overlay').style.display = 'flex';
       }
 
