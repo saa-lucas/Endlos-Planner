@@ -4,9 +4,9 @@
 function getBaseThemes() {
   return {
     "DARK_CLASSIC": {
-      ui: { headerBg: "#000000", headerText: "#ffffff", timeBg: "#000000", timeText: "#ffffff" },
+      ui: { headerBg: "#000000", headerText: "#ffffff", timeBg: "#000000", timeText: "#ffffff", blockBg: "#000000", borderColor: "#333333", patternSide: "#111111", footerBg: "#000000" },
       values: [
-        ["#ff5f5f", "", "#2d0a0a", "", "#ffdbdb", "", "#d69ca5"], // C(2): Fundo | E(4): Texto
+        ["#ff5f5f", "", "#2d0a0a", "", "#ffdbdb", "", "#d69ca5"],
         ["#ff4b67", "", "#310d14", "", "#ffdae0", "", "#eeacb2"],
         ["#ff6d31", "", "#331500", "", "#ffeadb", "", "#f4bfb1"],
         ["#e07a3d", "", "#2d180c", "", "#f5e0d3", "", "#e5bba4"],
@@ -35,7 +35,7 @@ function getBaseThemes() {
       ]
     },
     "LIGHT_CLASSIC": {
-      ui: { headerBg: "#f1f5f9", headerText: "#0f172a", timeBg: "#ffffff", timeText: "#334155" },
+      ui: { headerBg: "#f1f5f9", headerText: "#0f172a", timeBg: "#ffffff", timeText: "#334155", blockBg: "#ffffff", borderColor: "#cbd5e1", patternSide: "#f8fafc", footerBg: "#f1f5f9" },
       values: [
         ["#ff4d4d", "", "#ffe6e6", "", "#800000", "", "#ff9999"],
         ["#d81b60", "", "#fce4ec", "", "#880e4f", "", "#f48fb1"],
@@ -66,7 +66,7 @@ function getBaseThemes() {
       ]
     },
     "DARK_MODERN": {
-      ui: { headerBg: "#000000", headerText: "#ffffff", timeBg: "#000000", timeText: "#ffffff" },
+      ui: { headerBg: "#000000", headerText: "#ffffff", timeBg: "#000000", timeText: "#ffffff", blockBg: "#000000", borderColor: "#262626", patternSide: "#111111", footerBg: "#000000" },
       values: [
         ["#ff5f5f", "", "#2d0a0a", "", "#ffdbdb", "", "#d69ca5"],
         ["#ff4b67", "", "#310d14", "", "#ffdae0", "", "#eeacb2"],
@@ -97,7 +97,7 @@ function getBaseThemes() {
       ]
     },
     "LIGHT_MODERN": {
-      ui: { headerBg: "#f8fafc", headerText: "#0f172a", timeBg: "#ffffff", timeText: "#64748b" },
+      ui: { headerBg: "#f8fafc", headerText: "#0f172a", timeBg: "#ffffff", timeText: "#64748b", blockBg: "#ffffff", borderColor: "#e2e8f0", patternSide: "#f1f5f9", footerBg: "#e2e8f0" },
       values: [
         ["#ef5350", "", "#fef2f2", "", "#991b1b", "", "#fecaca"],
         ["#d81b60", "", "#fff1f2", "", "#831843", "", "#fbcfe8"],
@@ -128,7 +128,7 @@ function getBaseThemes() {
       ]
     },
     "CUSTOM": {
-      ui: { headerBg: "#000000", headerText: "#ffffff", timeBg: "#000000", timeText: "#ffffff" },
+      ui: { headerBg: "#000000", headerText: "#ffffff", timeBg: "#000000", timeText: "#ffffff", blockBg: "#000000", borderColor: "#333333", patternSide: "#111111", footerBg: "#000000" },
       values: [
         ["#ff5f5f", "", "#2d0a0a", "", "#ffdbdb", "", "#d69ca5"],
         ["#ff4b67", "", "#310d14", "", "#ffdae0", "", "#eeacb2"],
@@ -161,332 +161,361 @@ function getBaseThemes() {
   };
 }
 
-/**
- * Retorna o tema atual para a Sidebar.
- * Assume que se o fundo da célula A1 for preto (#000000), o tema é DARK.
- */
-function getSidebarTheme() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  const bgColor = sheet.getRange("A1").getBackground();
+// ==========================================
+// 🧠 MOTOR DE LUMINÂNCIA (Calcula Hierarquia Visual Robusta)
+// ==========================================
+function hexToRgb(hex) {
+  hex = hex.replace(/^#/, '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  const num = parseInt(hex, 16);
+  return [num >> 16, (num >> 8) & 255, num & 255];
+}
+
+function rgbToHex(r, g, b) {
+  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+}
+
+function mixColors(color1, color2, weight) {
+  const rgb1 = hexToRgb(color1);
+  const rgb2 = hexToRgb(color2);
+  const w1 = weight;
+  const w2 = 1 - weight;
+  const r = Math.round(rgb1[0] * w1 + rgb2[0] * w2);
+  const g = Math.round(rgb1[1] * w1 + rgb2[1] * w2);
+  const b = Math.round(rgb1[2] * w1 + rgb2[2] * w2);
+  return rgbToHex(r, g, b);
+}
+
+function getThemeAppearance(blockBgHex) {
+  let bg = blockBgHex;
+  if (!bg || !/^#[0-9A-F]{3,6}$/i.test(bg)) { bg = "#000000"; }
   
-  // Se o fundo da célula for preto, manda 'dark', senão 'light'
-  return (bgColor === "#000000") ? "dark" : "light";
+  const [r, g, b] = hexToRgb(bg);
+  
+  const a = [r, g, b].map(function (v) {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  const luminance = a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+  
+  const isDark = luminance < 0.35; 
+  const targetMix = isDark ? "#FFFFFF" : "#000000";
+
+  const success = isDark ? "#00E676" : "#008B46"; 
+  const danger = isDark ? "#FF4A70" : "#D31B42";  
+  const warning = isDark ? "#FFC107" : "#E65100"; 
+  const accent = isDark ? "#4DA8DA" : "#0056B3";  
+
+  return {
+      background: bg,
+      foreground: isDark ? "#FFFFFF" : "#000000",
+      foregroundMuted: mixColors(isDark ? "#FFFFFF" : "#000000", bg, 0.65),
+      bgCard: mixColors(targetMix, bg, 0.08),
+      bgBtn: mixColors(targetMix, bg, 0.15),
+      bgBtnHover: mixColors(targetMix, bg, 0.25),
+      border: mixColors(targetMix, bg, 0.20),
+      borderHover: mixColors(targetMix, bg, 0.40),
+      accent: accent,
+      success: success,
+      warning: warning,
+      danger: danger,
+      isDark: isDark
+  };
 }
 
 // ==========================================
-// 2. RECUPERA O TEMA (AGORA ACEITA TEMAS NOVOS SEM CRASHAR)
+// 2. RECUPERA O TEMA (BLINDADO)
 // ==========================================
 function getThemeData(themeName) {
-  let base = getBaseThemes()[themeName];
+  let baseRaw = getBaseThemes()[themeName];
+  if (!baseRaw) baseRaw = getBaseThemes()["CUSTOM"]; 
+  let base = JSON.parse(JSON.stringify(baseRaw)); 
   
-  // Se não achou na fábrica, assume que é um tema novo criado por você.
-  // Pega o esqueleto do "CUSTOM" original por precaução para não quebrar a planilha.
-  if (!base) {
-    base = JSON.parse(JSON.stringify(getBaseThemes()["CUSTOM"])); // Cópia segura
+  if (themeName && themeName.startsWith("CUSTOM_")) {
+    const customUIStr = PropertiesService.getDocumentProperties().getProperty(themeName + "_CUSTOM_UI");
+    if (customUIStr) {
+      const customUI = JSON.parse(customUIStr);
+      base.ui = { ...base.ui, ...customUI }; 
+    }
   }
   
-  const customUIStr = PropertiesService.getDocumentProperties().getProperty(themeName + "_CUSTOM_UI");
-  if (customUIStr) {
-    const customUI = JSON.parse(customUIStr);
-    base.ui = { ...base.ui, ...customUI }; 
+  if (!base.ui.blockBg) {
+    base.ui.blockBg = "#000000"; 
   }
   return base;
 }
 
 // ==========================================
-// FUNÇÃO NOVA: CRIAR E SALVAR TEMA NA LISTA
+// SALVAR PERSISTÊNCIA GERAL DA UI
 // ==========================================
-function createNewCustomTheme(newThemeName, uiConfig) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+function saveGlobalUIPreferences(theme, sidebarMode, dashboardMode) {
   try {
-    ss.toast("Criando seu novo tema...", "⏳ Aguarde", -1);
     const props = PropertiesService.getDocumentProperties();
+    if (theme) props.setProperty("GLOBAL_THEME", theme);
+    if (sidebarMode) props.setProperty("SIDEBAR_MODE", sidebarMode);
+    if (dashboardMode) props.setProperty("DASHBOARD_MODE", dashboardMode);
+    return "OK";
+  } catch (e) {
+    throw new Error(e.message);
+  }
+}
+
+// ==========================================
+// 6. PUXA O ESTADO ATUAL (CONTEXTO COMPLETO E SEGURO)
+// ==========================================
+function getCurrentUIState() {
+  try {
+    var props = PropertiesService.getDocumentProperties();
+    var currentTheme = props.getProperty("GLOBAL_THEME");
+    var sidebarMode = props.getProperty("SIDEBAR_MODE") || "THEME";
+    var dashboardMode = props.getProperty("DASHBOARD_MODE") || "THEME";
     
-    // 1. Cria uma chave única pro sistema não se perder (Ex: CUSTOM_MEU_TEMA_NEON)
-    const themeKey = "CUSTOM_" + newThemeName.toUpperCase().replace(/\s+/g, "_");
+    if (!currentTheme) {
+      currentTheme = "DARK_MODERN";
+      props.setProperty("GLOBAL_THEME", currentTheme);
+    }
     
-    // 2. Salva as cores nesse slot novo
-    props.setProperty(themeKey + "_CUSTOM_UI", JSON.stringify(uiConfig));
+    var themeData = getThemeData(currentTheme);
+    var appearance = getThemeAppearance(themeData.ui.blockBg);
     
-    // 3. Adiciona o nome na "Lista VIP" de temas salvos
+    console.log("STATE LIDO - Theme: " + currentTheme + " | Side: " + sidebarMode + " | Dash: " + dashboardMode);
+
+    return { 
+        theme: currentTheme, 
+        ui: themeData.ui,
+        sidebarMode: sidebarMode,
+        dashboardMode: dashboardMode,
+        appearance: appearance
+    };
+  } catch(e) {
+    console.log("ERRO FATAL AO LER TEMA ATUAL: " + e.message);
+    var fallbackApp = getThemeAppearance("#000000");
+    return { theme: "DARK_MODERN", ui: null, sidebarMode: "THEME", dashboardMode: "THEME", appearance: fallbackApp }; 
+  }
+}
+
+// ==========================================
+// FUNÇÃO: CRIAR TEMA AUTOMÁTICO (SOMENTE CRIA E RETORNA)
+// ==========================================
+function createNewAutoTheme() {
+  const props = PropertiesService.getDocumentProperties();
+  try {
     let savedThemesStr = props.getProperty("USER_SAVED_THEMES");
     let savedThemes = savedThemesStr ? JSON.parse(savedThemesStr) : [];
-    
-    // Verifica se já existe pra não duplicar no menu
-    let themeExists = savedThemes.find(t => t.key === themeKey);
-    if (!themeExists) {
-      savedThemes.push({ name: newThemeName, key: themeKey });
-      props.setProperty("USER_SAVED_THEMES", JSON.stringify(savedThemes));
+
+    let nextNum = 1;
+    while (savedThemes.some(t => t.key === "CUSTOM_TEMA_" + nextNum)) {
+      nextNum++;
     }
-    
-    // 4. Aplica o tema na hora
-    if (uiConfig.patternSide && uiConfig.patternFill) {
-      updatePatternInPalette(uiConfig.patternSide, uiConfig.patternFill);
-    }
-    
-    applyUIColorsOnly(uiConfig);
-    updateThemeBorders(uiConfig); 
-    props.setProperty("GLOBAL_THEME", themeKey); // Avisa que esse é o tema atual
-    
-    ss.toast("Tema '" + newThemeName + "' salvo com sucesso!", "✅ Sucesso", 5);
-    return { status: "SUCESSO", themeKey: themeKey, themeName: newThemeName };
-    
+
+    const themeName = "TEMA " + nextNum;
+    const themeKey = "CUSTOM_TEMA_" + nextNum;
+
+    const base = JSON.parse(JSON.stringify(getBaseThemes()["DARK_MODERN"]));
+    const uiConfig = base.ui;
+
+    props.setProperty(themeKey + "_CUSTOM_UI", JSON.stringify(uiConfig));
+
+    savedThemes.push({ name: themeName, key: themeKey });
+    props.setProperty("USER_SAVED_THEMES", JSON.stringify(savedThemes));
+
+    props.setProperty("GLOBAL_THEME", themeKey);
+
+    const appearance = getThemeAppearance(uiConfig.blockBg);
+
+    return {
+      status: "SUCESSO",
+      themeKey: themeKey,
+      themeName: themeName,
+      ui: uiConfig,
+      appearance: appearance
+    };
+
   } catch (e) {
-    ss.toast("Erro ao criar tema: " + e.message, "❌ Erro", 5);
+    console.error("ERRO AO CRIAR TEMA: " + e.message);
     return { status: "ERRO", message: e.message };
   }
 }
 
 // ==========================================
-// FUNÇÃO NOVA: PUXAR A LISTA PARA O HTML
+// FUNÇÃO: PUXAR A LISTA PARA O HTML
 // ==========================================
 function getUserSavedThemes() {
-  const savedThemesStr = PropertiesService.getDocumentProperties().getProperty("USER_SAVED_THEMES");
-  return savedThemesStr ? JSON.parse(savedThemesStr) : [];
+  try {
+    var props = PropertiesService.getDocumentProperties();
+    var savedThemesStr = props.getProperty("USER_SAVED_THEMES");
+    if (!savedThemesStr) return [];
+    return JSON.parse(savedThemesStr);
+  } catch(e) {
+    console.log("ERRO AO LER LISTA DE TEMAS: " + e.message);
+    return [];
+  }
 }
 
 // ==========================================
-// 3. APLICA A COR NA INTERFACE
+// 3. APLICA A COR NA INTERFACE (PLANILHA)
 // ==========================================
 function applyUIColorsOnly(uiConfig) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const orgSheet = ss.getSheetByName("Organisieren");
-  const paletteSheet = ss.getSheetByName("Palette Entry"); 
-  if (!orgSheet) return;
+  if (!orgSheet || !uiConfig) return;
 
   const maxCol = orgSheet.getMaxColumns();
   const maxRow = orgSheet.getMaxRows();
 
-  // HEADER BG: Linhas 1 a 8, começando da Coluna D (4)
   if (maxCol >= 4) {
     orgSheet.getRange(1, 4, 8, maxCol - 3).setBackground(uiConfig.headerBg).setFontColor(uiConfig.headerText);
   }
 
-  // TIMELINE BG: Colunas A, B e C (1 a 3), até a linha 105
   const endRowTimeline = Math.min(maxRow, 105);
   if (maxCol >= 3 && endRowTimeline >= 1) {
     orgSheet.getRange(1, 1, endRowTimeline, 3).setBackground(uiConfig.timeBg).setFontColor(uiConfig.timeText);
   }
 
-  // FOOTER BG: Linha 105, começando da Coluna D (4)
   if (maxCol >= 4 && maxRow >= 105) {
     orgSheet.getRange(105, 4, 1, maxCol - 3).setBackground(uiConfig.timeBg).setFontColor(uiConfig.timeText);
   }
 
-  // DIVISAS BG: Coluna U (21) e seguintes (AM, BE...), pulando de 18 em 18
   if (maxRow >= 9 && maxCol >= 21) {
-    const numRowsToPaint = Math.min(maxRow - 8, 96); // Cobre apenas de 9 a 104
+    const numRowsToPaint = Math.min(maxRow - 8, 96); 
+    let divisasA1 = [];
     for (let c = 21; c <= maxCol; c += 18) {
-      orgSheet.getRange(9, c, numRowsToPaint, 1).setBackground(uiConfig.timeBg).setFontColor(uiConfig.timeText);
+      divisasA1.push(orgSheet.getRange(9, c, numRowsToPaint, 1).getA1Notation());
+    }
+    if (divisasA1.length > 0) {
+      orgSheet.getRangeList(divisasA1).setBackground(uiConfig.timeBg).setFontColor(uiConfig.timeText);
     }
   }
 
-  // =======================================================
-  // PINTAR FUNDO DAS COLUNAS SIDE (P) E PATTERN (Q)
-  // =======================================================
-  if (paletteSheet && maxRow >= 9) {
-    const lastRow = paletteSheet.getLastRow();
-    let sideColor = null;
-    let patternColor = null;
-
-    if (lastRow >= 1) {
-      const pValues = paletteSheet.getRange(1, 1, lastRow, 17).getValues(); 
-      for (let i = 0; i < pValues.length; i++) {
-        // Puxa o nome da Coluna O, converte pra minúsculo e tira espaços para não ter erro
-        const nameVal = pValues[i][14] ? pValues[i][14].toString().toLowerCase().trim() : ""; 
-        
-        // SÓ PEGA AS CORES SE ESTIVER NA LINHA DO "PATTERN"
-        if (nameVal.includes("pattern")) {
-          let valP = pValues[i][15] ? pValues[i][15].toString().trim() : ""; // Coluna P
-          let valQ = pValues[i][16] ? pValues[i][16].toString().trim() : ""; // Coluna Q
-          
-          if (valP.startsWith("#")) sideColor = valP;
-          if (valQ.startsWith("#")) patternColor = valQ;
-          break; // Achou o pattern, não precisa ler mais nenhuma linha!
-        }
-      }
-    }
-
-    const numRowsPaint = Math.min(maxRow - 8, 96); // Da linha 9 a 104
+  if (maxRow >= 9) {
+    const numRowsPaint = Math.min(maxRow - 8, 96); 
+    let sideA1List = [];
+    let patternA1List = [];
     
-    // Loop aplicando nas semanas (pula de 18 em 18 colunas a partir da D)
     for (let baseCol = 4; baseCol <= maxCol; baseCol += 18) {
-      
-      // APLICA COR DA SIDE (Coluna P) nas abas (E, G, I, K, M, O, Q, S)
       const sideOffsets = [1, 3, 5, 7, 9, 11, 13, 15]; 
-      if (sideColor) {
-        sideOffsets.forEach(offset => {
-          const c = baseCol + offset;
-          if (c <= maxCol) orgSheet.getRange(9, c, numRowsPaint, 1).setBackground(sideColor);
-        });
-      }
+      sideOffsets.forEach(offset => {
+        if (baseCol + offset <= maxCol) sideA1List.push(orgSheet.getRange(9, baseCol + offset, numRowsPaint, 1).getA1Notation());
+      });
 
-      // APLICA COR DO PATTERN (Coluna Q) nas vazias principais e extremidades
-      // D(0), F(2), H(4), J(6), L(8), N(10), P(12), R(14), T(16)
       const patternOffsets = [0, 2, 4, 6, 8, 10, 12, 14, 16]; 
-      if (patternColor) {
-        patternOffsets.forEach(offset => {
-          const c = baseCol + offset;
-          if (c <= maxCol) orgSheet.getRange(9, c, numRowsPaint, 1).setBackground(patternColor);
-        });
-      }
+      patternOffsets.forEach(offset => {
+        if (baseCol + offset <= maxCol) patternA1List.push(orgSheet.getRange(9, baseCol + offset, numRowsPaint, 1).getA1Notation());
+      });
     }
+
+    if (uiConfig.patternSide && sideA1List.length > 0) orgSheet.getRangeList(sideA1List).setBackground(uiConfig.patternSide);
+    if (uiConfig.blockBg && patternA1List.length > 0) orgSheet.getRangeList(patternA1List).setBackground(uiConfig.blockBg);
   }
 
   SpreadsheetApp.flush();
 }
 
 // ==========================================
-// 4. SALVA CUSTOMIZAÇÃO DA SIDEBAR
+// 4. SALVAR EDIÇÃO DE TEMA (APENAS PERSISTE!)
 // ==========================================
 function saveCustomThemeUI(themeName, uiConfig) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
   try {
-    ss.toast("Saving custom theme and applying colors...", "⏳ Personalizando", -1);
-    
-    PropertiesService.getDocumentProperties().setProperty(themeName + "_CUSTOM_UI", JSON.stringify(uiConfig));
-    
-    // INJETA AS CORES DO PATTERN NA FOLHA ANTES DE PINTAR
-    if (uiConfig.patternSide && uiConfig.patternFill) {
-      updatePatternInPalette(uiConfig.patternSide, uiConfig.patternFill);
+    if (!themeName || !themeName.startsWith("CUSTOM_")) {
+      return "ERRO: Tema inválido.";
     }
+    PropertiesService.getDocumentProperties().setProperty(themeName + "_CUSTOM_UI", JSON.stringify(uiConfig));
+    PropertiesService.getDocumentProperties().setProperty("GLOBAL_THEME", themeName);
     
-    applyUIColorsOnly(uiConfig);
-    updateThemeBorders(uiConfig); 
-    
-    ss.toast("Tema personalizado salvo e aplicado!", "✅ Sucesso", 3);
     return "SUCESSO";
   } catch (e) {
-    ss.toast("Erro ao salvar o tema personalizado: " + e.message, "❌ Erro", 5);
     return "ERRO: " + e.message;
   }
 }
 
 // ==========================================
-// 5. MOTOR PRINCIPAL: TROCAR DE TEMA
+// 5. MOTOR PRINCIPAL: TROCAR DE TEMA (APLICAÇÃO TOTAL)
 // ==========================================
 function applyTheme(themeName) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   try {
-    ss.toast("Aguarde, aplicando novas cores e bordas...", "⏳ Alterando tema", -1);
-    const sheet = ss.getSheetByName("Palette Entry");
-    if (!sheet) return "ERRO: Aba Palette Entry não encontrada.";
-
     PropertiesService.getDocumentProperties().setProperty("GLOBAL_THEME", themeName);
     const themeData = getThemeData(themeName);
-    if (!themeData) return "ERRO: Tema inexistente.";
-
-    // Escreve a Matriz Base
-    sheet.getRange(2, 1, themeData.values.length, 7).setValues(themeData.values);
+    const sheet = ss.getSheetByName("Palette Entry");
+    if (sheet) sheet.getRange(2, 1, themeData.values.length, 7).setValues(themeData.values);
     
-    // MÁGICA AQUI: Força a atualização do Pattern. Se o tema não tiver, envia "" para limpar as células!
-    const pSide = (themeData.ui && themeData.ui.patternSide) ? themeData.ui.patternSide : "";
-    const pFill = (themeData.ui && themeData.ui.patternFill) ? themeData.ui.patternFill : "";
-    updatePatternInPalette(pSide, pFill);
-
-    applyUIColorsOnly(themeData.ui);
-    updateThemeBorders(themeData.ui); 
+    if (themeData.ui) {
+      updatePatternInPalette(themeData.ui);
+      applyUIColorsOnly(themeData.ui);
+      updateThemeBorders(themeData.ui); 
+    }
     
     if (typeof applyOutlookColorsOptimized === "function") applyOutlookColorsOptimized();
     if (typeof applyFillFromOutlookColorsOptimized === "function") applyFillFromOutlookColorsOptimized();
     
-    ss.toast("Tema aplicado com sucesso!", "✅ Sucesso", 3);
-    return JSON.stringify({ status: "SUCESSO", ui: themeData.ui }); 
+    var appearance = getThemeAppearance(themeData.ui.blockBg);
+    
+    return JSON.stringify({ status: "SUCESSO", ui: themeData.ui, appearance: appearance }); 
   } catch (erro) {
-    ss.toast("Falha ao aplicar o tema: " + erro.message, "❌ Erro crítico", 5);
-    return "ERRO CRÍTICO: " + erro.message;
+    throw new Error(erro.message);
   }
 }
 
 // ==========================================
-// 6. PUXA A COR ATUAL 
+// FUNÇÃO: PREVIEW AO VIVO (NÃO PERSISTE, APENAS PLANILHA/SIDE)
 // ==========================================
-function getCurrentUIState() {
-  const currentTheme = PropertiesService.getDocumentProperties().getProperty("GLOBAL_THEME") || "DARK_THEME";
-  const themeData = getThemeData(currentTheme);
-  return { theme: currentTheme, ui: themeData ? themeData.ui : null };
+function previewThemeColors(uiConfig) {
+  try {
+    updatePatternInPalette(uiConfig);
+    applyUIColorsOnly(uiConfig);
+    updateThemeBorders(uiConfig);
+    
+    // Sem chamadas de outlook colors aqui para evitar travamentos cíclicos no preview
+    
+    return getThemeAppearance(uiConfig.blockBg);
+  } catch(e) {
+    throw new Error(e.message);
+  }
 }
 
 // ==========================================
-// 7. BORDAS INTELIGENTES (VERSÃO CORRIGIDA PARA O RODAPÉ)
+// 7. BORDAS INTELIGENTES DA PLANILHA
 // ==========================================
 function updateThemeBorders(uiConfig) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const orgSheet = ss.getSheetByName("Organisieren");
-  const paletteSheet = ss.getSheetByName("Palette Entry");
-  if (!orgSheet || !paletteSheet) return;
+  if (!orgSheet || !uiConfig) return;
 
-  // 1. BUSCA A COR DO STROKE E CORES DO TEMA ATUAL
-  const theme = getActiveThemeColors(); // Puxa nosso "Cérebro de Cores"
-  const lastRow = paletteSheet.getLastRow();
-  let strokeColor = "#333333"; 
-  
-  if (lastRow >= 1) {
-    const values = paletteSheet.getRange(1, 1, lastRow, 12).getValues(); 
-    for (let i = 0; i < values.length; i++) {
-      const nameVal = values[i][11];
-      if (nameVal && nameVal.toString().toLowerCase().includes("pattern")) { 
-        const strokeVal = values[i][6];
-        if (strokeVal && strokeVal.toString().startsWith("#")) {
-          strokeColor = strokeVal.toString().trim();
-          break; 
-        }
-      }
-    }
-  }
+  let strokeColor = uiConfig.borderColor || uiConfig.patternFill || "#333333"; 
+  let footerBg = uiConfig.footerBg || uiConfig.patternSide || "#e0e0e0";
 
   const maxCol = orgSheet.getMaxColumns();
   const borderStyle = SpreadsheetApp.BorderStyle.SOLID_MEDIUM;
 
-  // =========================================================
-  // PASSO 1: RESET E FUNDO DA LINHA 105 (Rodapé)
-  // =========================================================
   if (maxCol >= 4) {
-    const footerRange = orgSheet.getRange(105, 4, 1, maxCol - 3);
-    footerRange.setBorder(false, false, false, false, false, false);
-    // Aplica a cor do tema no fundo para não ficar branco/vazio
-    footerRange.setBackground(theme.side); 
+    orgSheet.getRange(105, 4, 1, maxCol - 3).setBackground(footerBg).setBorder(false, false, false, false, false, false);
   }
 
-  // =========================================================
-  // PASSO 2: TIMELINE COL C
-  // =========================================================
   if (maxCol >= 3) {
     orgSheet.getRange(9, 3, 95, 1).setBorder(false, false, true, false, false, true, strokeColor, borderStyle);
     orgSheet.getRange(8, 3).setBorder(false, false, true, false, false, false, strokeColor, borderStyle);
-    
     orgSheet.getRange(104, 3).setBorder(false, false, true, false, false, false, strokeColor, borderStyle);
     orgSheet.getRange(105, 3).setBorder(true, false, false, false, false, false, strokeColor, borderStyle);
   }
 
-  // =========================================================
-  // PASSO 3: LOOP POR SEMANAS
-  // =========================================================
   for (let baseCol = 4; baseCol <= maxCol; baseCol += 18) {
-    
-    // Grade central do miolo (Aumentado para 96 para tocar a linha 104)
     orgSheet.getRange(9, baseCol, 96, 17).setBorder(false, false, true, false, false, true, strokeColor, borderStyle);
 
-    // Divisa Col U
     const divisa = baseCol + 17;
     if (divisa <= maxCol) {
       orgSheet.getRange(9, divisa, 96, 1).setBorder(false, false, true, false, false, true, strokeColor, borderStyle);
       orgSheet.getRange(8, divisa).setBorder(false, false, true, false, false, false, strokeColor, borderStyle);
-      
       orgSheet.getRange(104, divisa).setBorder(false, false, true, false, false, false, strokeColor, borderStyle);
       orgSheet.getRange(105, divisa).setBorder(true, false, false, false, false, false, strokeColor, borderStyle);
     }
 
     const patternColsOffsets = [0, 1, 3, 5, 7, 9, 11, 13, 15, 16]; 
-    const mainColsOffsets = [2, 4, 6, 8, 10, 12, 14];             
+    const mainColsOffsets = [2, 4, 6, 8, 10, 12, 14];              
     
-    // TOPO (LINHA 8) E RODAPÉ (LINHAS 104/105)
     patternColsOffsets.forEach(offset => {
       const col = baseCol + offset;
       if (col <= maxCol) {
         orgSheet.getRange(8, col).setBorder(false, false, true, false, false, false, strokeColor, borderStyle);
-        
-        // REFORÇO NO RODAPÉ
         orgSheet.getRange(104, col).setBorder(false, false, true, false, false, false, strokeColor, borderStyle);
         orgSheet.getRange(105, col).setBorder(true, false, false, false, false, false, strokeColor, borderStyle);
       }
@@ -496,226 +525,86 @@ function updateThemeBorders(uiConfig) {
       const col = baseCol + offset;
       if (col <= maxCol) {
         orgSheet.getRange(8, col).setBorder(false, false, true, false, false, false, uiConfig.headerBg, borderStyle);
-        
-        // FECHAMENTO DA COLUNA LARGA NO RODAPÉ (Garante a linha horizontal de baixo)
         orgSheet.getRange(104, col).setBorder(false, false, true, false, false, false, strokeColor, borderStyle);
       }
     });
   }
-
   SpreadsheetApp.flush();
 }
 
 // ==========================================
-// 8. ATUALIZA O PATTERN NA MATRIZ RAIZ (PRESERVA FÓRMULAS E IGUALA FILL = STROKE)
-// ==========================================
-function updatePatternInPalette(sideColor, fillColor) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const paletteSheet = ss.getSheetByName("Palette Entry");
-  
-  if (!paletteSheet) return;
-  
-  const lastRow = paletteSheet.getLastRow();
-  if (lastRow < 1) return;
-  
-  // Lê APENAS a coluna L (índice 12), que é onde estão os nomes ("Pattern", etc)
-  const labels = paletteSheet.getRange(1, 12, lastRow, 1).getValues(); 
-  
-  // 🧠 LÓGICA DE CORES DO TEXTO
-  const currentTheme = PropertiesService.getDocumentProperties().getProperty("GLOBAL_THEME") || "";
-  const isDark = currentTheme.includes("DARK");
-  const textColor = isDark ? "#ffffff" : "#000000"; // Branco no tema escuro, Preto no claro
-
-  for (let i = 0; i < labels.length; i++) {
-    const nameVal = labels[i][0] ? labels[i][0].toString().toLowerCase().trim() : ""; 
-    
-    if (nameVal.includes("pattern")) {
-      const row = i + 1; // Linha exata onde o "Pattern" está na matriz
-      
-      // INJETA NA MATRIZ BASE (A a G) - Suas fórmulas vão ler daqui!
-      if (sideColor) {
-        paletteSheet.getRange(row, 1).setValue(sideColor); // Coluna A (Side)
-      }
-      
-      if (fillColor) {
-        paletteSheet.getRange(row, 3).setValue(fillColor); // Coluna C (Fill)
-        
-        // ✨ A REGRA DE OURO: Stroke recebe exatamente o mesmo HEX do Fill!
-        paletteSheet.getRange(row, 7).setValue(fillColor); // Coluna G (Stroke)
-      }
-      
-      // Injeta o Texto
-      paletteSheet.getRange(row, 5).setValue(textColor);   // Coluna E (Texto)
-      
-      break; // Achou e atualizou. Fim do loop!
-    }
-  }
-  
-  // Força o Google Sheets a calcular as fórmulas =SEERRO(...) antes do pincel passar
-  SpreadsheetApp.flush();
-}
-
-// ==========================================
-// FUNÇÃO NOVA: CRIAR TEMA AUTOMÁTICO (TEMA 1, TEMA 2...)
-// ==========================================
-function createNewAutoTheme() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  try {
-    const props = PropertiesService.getDocumentProperties();
-    
-    // Puxa a lista atual para saber qual é o número do próximo tema
-    let savedThemesStr = props.getProperty("USER_SAVED_THEMES");
-    let savedThemes = savedThemesStr ? JSON.parse(savedThemesStr) : [];
-    
-    let nextNum = savedThemes.length + 1;
-    let newThemeName = "TEMA " + nextNum;
-    let themeKey = "CUSTOM_TEMA_" + nextNum;
-    
-    // Copia a paleta do DARK_MODERN como base para o novo tema não nascer "em branco"
-    let base = JSON.parse(JSON.stringify(getBaseThemes()["DARK_MODERN"]));
-    let newUi = base.ui;
-    
-    // Salva a base do tema novo
-    props.setProperty(themeKey + "_CUSTOM_UI", JSON.stringify(newUi));
-    
-    // Põe na lista do Menu
-    savedThemes.push({ name: newThemeName, key: themeKey });
-    props.setProperty("USER_SAVED_THEMES", JSON.stringify(savedThemes));
-    
-    // Define como tema ativo e pinta a tela
-    props.setProperty("GLOBAL_THEME", themeKey);
-    if (newUi.patternSide && newUi.patternFill) {
-      updatePatternInPalette(newUi.patternSide, newUi.patternFill);
-    }
-    applyUIColorsOnly(newUi);
-    updateThemeBorders(newUi); 
-    
-    return { status: "SUCESSO", themeKey: themeKey, themeName: newThemeName, ui: newUi };
-    
-  } catch (e) {
-    ss.toast("Erro ao criar tema: " + e.message, "❌ Erro", 5);
-    return { status: "ERRO", message: e.message };
-  }
-}
-
-// ==========================================
-// FUNÇÃO NOVA: PREVIEW AO VIVO DAS CORES
-// ==========================================
-function previewThemeColors(uiConfig) {
-  // Apenas pinta a tela, NÃO salva na memória permanente.
-  if (uiConfig.patternSide && uiConfig.patternFill) {
-    updatePatternInPalette(uiConfig.patternSide, uiConfig.patternFill);
-  }
-  applyUIColorsOnly(uiConfig);
-  updateThemeBorders(uiConfig);
-}
-
-// ==========================================
-// 🧠 FUNÇÃO NOVA: MATEMÁTICA DE COR PARA A BORDA (STROKE)
+// MATEMÁTICA DE COR PARA A BORDA DA PLANILHA
 // ==========================================
 function getSmartStrokeColor(hex, isDark) {
-  // Garante que é um HEX válido de 6 caracteres
   if (!/^#[0-9A-F]{6}$/i.test(hex)) return hex;
-  
-  let r = parseInt(hex.slice(1, 3), 16);
-  let g = parseInt(hex.slice(3, 5), 16);
-  let b = parseInt(hex.slice(5, 7), 16);
-
-  const amount = 35; // Intensidade da diferença da borda (0 a 255)
-  
+  let r = parseInt(hex.slice(1, 3), 16); let g = parseInt(hex.slice(3, 5), 16); let b = parseInt(hex.slice(5, 7), 16);
+  const amount = 35; 
   if (isDark) {
-    // Tema escuro: Clareia a borda para destacar
-    r = Math.min(255, r + amount);
-    g = Math.min(255, g + amount);
-    b = Math.min(255, b + amount);
+    r = Math.min(255, r + amount); g = Math.min(255, g + amount); b = Math.min(255, b + amount);
   } else {
-    // Tema claro: Escurece a borda para destacar
-    r = Math.max(0, r - amount);
-    g = Math.max(0, g - amount);
-    b = Math.max(0, b - amount);
+    r = Math.max(0, r - amount); g = Math.max(0, g - amount); b = Math.max(0, b - amount);
   }
-
-  const toHex = (n) => {
-    let h = n.toString(16);
-    return h.length === 1 ? "0" + h : h;
-  };
-  
+  const toHex = (n) => { let h = n.toString(16); return h.length === 1 ? "0" + h : h; };
   return "#" + toHex(r) + toHex(g) + toHex(b);
 }
 
 // ==========================================
-// 8. ATUALIZA O PATTERN NA MATRIZ RAIZ (COM STROKE INTELIGENTE)
+// 8. ATUALIZA O PATTERN NA MATRIZ RAIZ
 // ==========================================
-function updatePatternInPalette(sideColor, fillColor) {
+function updatePatternInPalette(uiConfig) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const paletteSheet = ss.getSheetByName("Palette Entry");
-  
-  if (!paletteSheet) return;
-  
+  if (!paletteSheet || !uiConfig) return;
+
   const lastRow = paletteSheet.getLastRow();
   if (lastRow < 1) return;
-  
-  const labels = paletteSheet.getRange(1, 12, lastRow, 1).getValues(); 
-  
-  const currentTheme = PropertiesService.getDocumentProperties().getProperty("GLOBAL_THEME") || "";
-  const isDark = currentTheme.includes("DARK");
-  const textColor = isDark ? "#ffffff" : "#000000"; 
 
-  // ✨ GERA A COR DE BORDA AUTOMÁTICA
-  const smartStroke = getSmartStrokeColor(fillColor, isDark);
+  const labels = paletteSheet.getRange(1, 12, lastRow, 1).getValues();
+
+  let blockBg = uiConfig.blockBg || "#000000";
+  let app = getThemeAppearance(blockBg);
+  let textColor = app.foreground;
+  let isDark = app.isDark;
 
   for (let i = 0; i < labels.length; i++) {
-    const nameVal = labels[i][0] ? labels[i][0].toString().toLowerCase().trim() : ""; 
-    
+    const nameVal = labels[i][0] ? labels[i][0].toString().toLowerCase().trim() : "";
+
     if (nameVal.includes("pattern")) {
-      const row = i + 1; 
-      
-      if (sideColor) paletteSheet.getRange(row, 1).setValue(sideColor); 
-      if (fillColor) {
-        paletteSheet.getRange(row, 3).setValue(fillColor); 
-        paletteSheet.getRange(row, 7).setValue(smartStroke); // Aplica a borda gerada!
-      }
-      
-      paletteSheet.getRange(row, 5).setValue(textColor);   
-      break; 
+      const row = i + 1;
+      if (uiConfig.patternSide) paletteSheet.getRange(row, 1).setValue(uiConfig.patternSide);
+      paletteSheet.getRange(row, 3).setValue(blockBg);
+      let border = uiConfig.borderColor || getSmartStrokeColor(blockBg, isDark);
+      paletteSheet.getRange(row, 7).setValue(border);
+      paletteSheet.getRange(row, 5).setValue(textColor);
+      break;
     }
   }
-  
   SpreadsheetApp.flush();
 }
 
 // ==========================================
-// FUNÇÃO NOVA: DELETAR TEMA CUSTOMIZADO
+// FUNÇÃO: DELETAR TEMA CUSTOMIZADO
 // ==========================================
 function deleteCustomTheme(themeKey) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
   try {
-    ss.toast("Apagando tema...", "🗑️ Deletando", -1);
     const props = PropertiesService.getDocumentProperties();
-    
-    // 1. Deleta a configuração de cores
     props.deleteProperty(themeKey + "_CUSTOM_UI");
     
-    // 2. Remove o tema da lista VIP
     let savedThemesStr = props.getProperty("USER_SAVED_THEMES");
     let savedThemes = savedThemesStr ? JSON.parse(savedThemesStr) : [];
     savedThemes = savedThemes.filter(t => t.key !== themeKey);
     props.setProperty("USER_SAVED_THEMES", JSON.stringify(savedThemes));
     
-    // 3. Se ele tava usando o tema que foi apagado, joga pro padrão
     let current = props.getProperty("GLOBAL_THEME");
     let fallback = "DARK_MODERN";
+    
     if (current === themeKey) {
       props.setProperty("GLOBAL_THEME", fallback);
     } else {
-      fallback = current; // Mantém onde tava
+      fallback = current; 
     }
-    
-    ss.toast("Tema deletado com sucesso!", "✅ Sucesso", 4);
     return { status: "SUCESSO", fallbackTheme: fallback };
-    
   } catch (e) {
-    ss.toast("Erro ao deletar tema: " + e.message, "❌ Erro", 5);
-    return { status: "ERRO", message: e.message };
+    throw new Error(e.message);
   }
 }
